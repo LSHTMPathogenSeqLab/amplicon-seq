@@ -48,9 +48,9 @@ def main(args):
 
     run_cmd("bcftools filter -i 'FMT/DP>10' -S . combined.genotyped.vcf.gz | bcftools view -i 'QUAL>30' | bcftools sort | bcftools norm -m - -Oz -o tmp.vcf.gz" % vars(args))
     run_cmd("bcftools view -v snps tmp.vcf.gz | bcftools csq -p a -f %(ref)s -g %(gff)s -Oz -o snps.vcf.gz" % vars(args))
-    run_cmd("tabix tmp.snps.vcf.gz" % vars(args))
+    run_cmd("tabix snps.vcf.gz" % vars(args))
     run_cmd("bcftools view -v indels tmp.vcf.gz | bcftools csq -p a -f %(ref)s -g %(gff)s -Oz -o indels.vcf.gz" % vars(args))
-    run_cmd("tabix tmp.indels.vcf.gz" % vars(args))
+    run_cmd("tabix indels.vcf.gz" % vars(args))
     run_cmd(r"bcftools query snps.vcf.gz -f '[%SAMPLE\t%CHROM\t%POS\t%REF\t%ALT\t%QUAL\t%GT\t%TGT\t%DP\t%AD\t%INFO/BCSQ\n]' > combined_genotyped_filtered_formatted.snps.trans.gatk.txt")
     run_cmd(r"bcftools query indels.vcf.gz -f '[%SAMPLE\t%CHROM\t%POS\t%REF\t%ALT\t%QUAL\t%GT\t%TGT\t%DP\t%AD\t%INFO/BCSQ\n]' > combined_genotyped_filtered_formatted.indels.trans.gatk.txt")
 
