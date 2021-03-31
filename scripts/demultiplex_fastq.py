@@ -15,7 +15,10 @@ def num_mismatches(str_x,str_y):
 
 def main(args):
     index = {}
-    for row in csv.DictReader(open(args.index)):
+    reader = csv.DictReader(open(args.index))
+    if "sample" not in reader.fieldnames:
+        reader = csv.DictReader(open(args.index,encoding='utf-8-sig'))
+    for row in reader:
         if row["sample"]=="": continue
         index[(row["I1"],row["I2"])] = row["sample"]
         index_size = len(row["I1"])
