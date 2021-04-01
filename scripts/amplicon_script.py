@@ -68,6 +68,7 @@ parser.add_argument('--trim',action="store_true",help='Perform triming')
 parser.add_argument('--trim-qv',default=20,type=int,help='Quality value to use in the sliding window analysis')
 parser.add_argument('--min-base-qual',default=30,type=int,help='Minimum base quality to use by freebayes')
 parser.add_argument('--sample-prefix',default="",help=argparse.SUPPRESS)
+parser.add_argument('--version', action='version', version='%(prog)s 1.0')
 parser.set_defaults(func=main)
 
 args = parser.parse_args()
