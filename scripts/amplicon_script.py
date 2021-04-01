@@ -26,7 +26,7 @@ def main(args):
     fm.faidx(args.ref)
 
     run_cmd("demultiplex_fastq.py --R1 %(read1)s --R2 %(read2)s --index %(index_file)s" % vars(args))
-    
+
     for sample in samples:
         args.sample = sample
         run_cmd("fastqc %(sample)s_1.fastq.gz %(sample)s_2.fastq.gz" % vars(args))
@@ -51,8 +51,8 @@ def main(args):
     run_cmd("tabix snps.vcf.gz" % vars(args))
     run_cmd("bcftools view -v indels tmp.vcf.gz | bcftools csq -p a -f %(ref)s -g %(gff)s -Oz -o indels.vcf.gz" % vars(args))
     run_cmd("tabix indels.vcf.gz" % vars(args))
-    run_cmd(r"bcftools query snps.vcf.gz -f '[%SAMPLE\t%CHROM\t%POS\t%REF\t%ALT\t%QUAL\t%GT\t%TGT\t%DP\t%AD\t%INFO/BCSQ\n]' > combined_genotyped_filtered_formatted.snps.trans.gatk.txt")
-    run_cmd(r"bcftools query indels.vcf.gz -f '[%SAMPLE\t%CHROM\t%POS\t%REF\t%ALT\t%QUAL\t%GT\t%TGT\t%DP\t%AD\t%INFO/BCSQ\n]' > combined_genotyped_filtered_formatted.indels.trans.gatk.txt")
+    run_cmd(r"bcftools query snps.vcf.gz -f '[%SAMPLE\t%CHROM\t%POS\t%REF\t%ALT\t%QUAL\t%GT\t%TGT\t%DP\t%AD\t%INFO/TBCSQ\n]' > combined_genotyped_filtered_formatted.snps.trans.gatk.txt")
+    run_cmd(r"bcftools query indels.vcf.gz -f '[%SAMPLE\t%CHROM\t%POS\t%REF\t%ALT\t%QUAL\t%GT\t%TGT\t%DP\t%AD\t%INFO/TBCSQ\n]' > combined_genotyped_filtered_formatted.indels.trans.gatk.txt")
 
 
 
