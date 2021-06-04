@@ -15,7 +15,7 @@ def main(args):
     fm.bwa_index(args.ref)
     fm.faidx(args.ref)
 
-    # fm.run_cmd("demultiplex_fastq.py --R1 %(read1)s --R2 %(read2)s --index %(index_file)s" % vars(args))
+    fm.run_cmd("demultiplex_fastq.py --R1 %(read1)s --R2 %(read2)s --index %(index_file)s" % vars(args))
 
     for sample in samples:
         args.sample = sample
