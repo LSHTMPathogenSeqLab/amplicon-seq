@@ -19,6 +19,7 @@ def main(args):
     if "sample" not in reader.fieldnames:
         reader = csv.DictReader(open(args.index_file,encoding='utf-8-sig'))
     for row in reader:
+        if row["sample"]=="": continue
         samples.append(row["sample"])
 
     fm.bwa_index(args.ref)
@@ -45,7 +46,7 @@ def main(args):
         for s in samples:
             O.write("%s.bam\n" % (s))
 
-    run_cmd("freebayes -f %(ref)s -t %(bed)s -L bam_list.txt --haplotype-length -1 --min-coverage 50 --gvcf --gvcf-dont-use-chunk true --min-base-quality %(min_base_qual)s | bcftools norm -f %(ref)s | bcftools sort -Oz -o combined.genotyped.vcf.gz" % vars(args))
+    run_cmd("freebayes -f %(ref)s -t %(bed)s -L bam_list.txt --haplotype-length -1 --min-coverage 50 --gvcf --gvcf-dont-use-chunk true --min-base-quality %(min_base_qual)s | bcftools view -T %(bed)s | bcftools norm -f %(ref)s | bcftools sort -Oz -o combined.genotyped.vcf.gz" % vars(args))
 
     run_cmd("bcftools filter -i 'FMT/DP>10' -S . combined.genotyped.vcf.gz | bcftools view -i 'QUAL>30' | bcftools sort | bcftools norm -m - -Oz -o tmp.vcf.gz" % vars(args))
     run_cmd("bcftools view -v snps tmp.vcf.gz | bcftools csq -p a -f %(ref)s -g %(gff)s -Oz -o snps.vcf.gz" % vars(args))
@@ -57,7 +58,25 @@ def main(args):
     run_cmd(r"bcftools query indels.vcf.gz -f '[%SAMPLE\t%CHROM\t%POS\t%REF\t%ALT\t%QUAL\t%GT\t%TGT\t%DP\t%AD\n]' > combined_genotyped_filtered_formatted.indels.gatk.txt")
     run_cmd(r"bcftools query indels.vcf.gz -f '[%SAMPLE\t%CHROM\t%POS\t%REF\t%ALT\t%QUAL\t%GT\t%TGT\t%DP\t%AD\t%TBCSQ\n]' > combined_genotyped_filtered_formatted.indels.trans.gatk.txt")
 
+    run_cmd(r"bcftools query -f '%CHROM\t%POS[\t%DP]\n' combined.genotyped.vcf.gz > tmp.txt")
 
+    
+    pos_info = {}
+    for l in open(args.position_info):
+        row = l.strip().split()
+        pos_info[(row[0],row[1])] = (row[2],row[3])
+    with open("depth_info.txt", "w") as O:
+        O.write("chrom\tpos\tgene\tcsq\t%s\n" % "\t".join(samples))
+        for l in open("tmp.txt"):
+            row = l.strip().split()
+            if (row[0],row[1]) in pos_info:
+                p = pos_info[(row[0],row[1])]
+                row.insert(2,p[1])
+                row.insert(2,p[0])
+            else:
+                row.insert(2,"NA")
+                row.insert(2,"NA")
+            O.write("%s\n" % ("\t".join(row)))
 
 # Set up the parser
 parser = argparse.ArgumentParser(description='Amplicon sequencing analysis script',formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -67,6 +86,7 @@ parser.add_argument('--read2',type=str,help='Reverse read file',required=True)
 parser.add_argument('--ref',type=str,help='Reference fasta',required=True)
 parser.add_argument('--gff',type=str,help='GFF file',required=True)
 parser.add_argument('--bed',type=str,help='BED file with genes/amplicon locations',required=True)
+parser.add_argument('--position-info',type=str,help='Position info file',required=True)
 parser.add_argument('--trim',action="store_true",help='Perform triming')
 parser.add_argument('--trim-qv',default=20,type=int,help='Quality value to use in the sliding window analysis')
 parser.add_argument('--min-base-qual',default=30,type=int,help='Minimum base quality to use by freebayes')
