@@ -22,7 +22,12 @@ def main(args):
         fm.run_cmd("bwa mem -t 10 -R \"@RG\\tID:%(sample)s\\tSM:%(sample)s\\tPL:Illumina\" %(ref)s %(sample)s_1.fastq.gz %(sample)s_2.fastq.gz | samclip --ref %(ref)s --max 50 | samtools sort -o %(sample)s.bam -" % vars(args))
 
         fm.run_cmd("samtools index %(sample)s.bam" % vars(args))
-        fm.run_cmd("freebayes -f %(ref)s --haplotype-length -1 %(sample)s.bam --min-base-quality %(min_base_qual)s | bcftools view -Oz -o %(sample)s.vcf.gz" % vars(args))
+
+    with open("bam_list.txt","w") as O:
+        for s in samples:
+            O.write("%s.bam\n" % (s))
+
+    fm.run_cmd("freebayes -f %(ref)s -t %(bed)s -L bam_list.txt --haplotype-length -1 --min-coverage 50 --min-base-quality %(min_base_qual)s | bcftools view -T %(bed)s | bcftools norm -f %(ref)s | bcftools sort -Oz -o combined.genotyped.vcf.gz" % vars(args))
 
 parser = argparse.ArgumentParser(description='Amplicon variant calling script',formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser.add_argument('--index-file',type=str,help='CSV file containing fields "Sample,I1,I2"',required=True)
