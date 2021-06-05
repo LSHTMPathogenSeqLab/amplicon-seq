@@ -28,6 +28,7 @@ def main(args):
             O.write("%s.bam\n" % (s))
 
     fm.run_cmd("freebayes -f %(ref)s -t %(bed)s -L bam_list.txt --haplotype-length -1 --min-coverage 50 --min-base-quality %(min_base_qual)s | bcftools view -T %(bed)s | bcftools norm -f %(ref)s | bcftools sort -Oz -o combined.genotyped.vcf.gz" % vars(args))
+    fm.run_cmd(r"bcftools query combined.genotyped.vcf.gz -f '[%SAMPLE\t%CHROM\t%POS\t%REF\t%ALT\t%QUAL\t%GT\t%TGT\t%DP\t%AD\n]' > combined_genotyped_filtered_formatted.snps.txt")    
 
 parser = argparse.ArgumentParser(description='Amplicon variant calling script',formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser.add_argument('--index-file',type=str,help='CSV file containing fields "Sample,I1,I2"',required=True)
