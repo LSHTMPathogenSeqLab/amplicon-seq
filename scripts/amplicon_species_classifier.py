@@ -109,9 +109,11 @@ def check_for_kmers(kmer_list_file,read1,read2=None):
                 k["species"] = "gambiae"
     ###       End test     ###   
 
+
     species_support = []
-    for s in species_set:
+    for s in set([x["species"] for x in kmer_support]):
         support = [x["num"] for x in kmer_support if x["species"]==s]
+
         if len(support)==0:
             continue
         if len([x for x in support if x!=0])<len(support)/2:
