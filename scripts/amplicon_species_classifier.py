@@ -94,9 +94,26 @@ def check_for_kmers(kmer_list_file,read1,read2=None):
         num = file_kmers.get(kmer,0)
         kmer_support.append({"kmer":kmer,"species":species,"num":num})
         species_set.add(species)
+
+    #### Test for coluzzi ###
+    if len([x for x in kmer_support if x["species"]=="coluzzi" and x["num"]>0])>0:
+        kmer_support = [x for x in kmer_support if x["species"]!="coluzzi"]
+        for k in kmer_support:
+            if k["species"]=="gambiae_complex":
+                k["species"] = "coluzzi"
+        
+    else:
+        kmer_support = [x for x in kmer_support if x["species"]!="gambiae"]
+        for k in kmer_support:
+            if k["species"]=="gambiae_complex":
+                k["species"] = "gambiae"
+    ###       End test     ###   
+
     species_support = []
     for s in species_set:
         support = [x["num"] for x in kmer_support if x["species"]==s]
+        if len(support)==0:
+            continue
         if len([x for x in support if x!=0])<len(support)/2:
             continue
         mean = stats.mean(support)
