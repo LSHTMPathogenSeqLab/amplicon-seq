@@ -109,7 +109,6 @@ def check_for_kmers(kmer_list_file,read1,read2=None):
                 k["species"] = "gambiae"
     ###       End test     ###   
 
-
     species_support = []
     for s in set([x["species"] for x in kmer_support]):
         support = [x["num"] for x in kmer_support if x["species"]==s]
@@ -121,7 +120,6 @@ def check_for_kmers(kmer_list_file,read1,read2=None):
         mean = stats.mean(support)
         std = stats.stdev(support)
         species_support.append({"species":s,"mean":mean,"std":std})
-
     return species_support
 
 
@@ -130,10 +128,11 @@ def get_db(update = False):
     kmer_file = f"{db_dir}/kmers.txt"
     if not os.path.isdir(db_dir):
         os.mkdir(db_dir)
-        if not os.path.isfile(kmer_file):
-            import urllib.request
-            sys.stderr.write("Downloading kmers\n")
-            urllib.request.urlretrieve("https://raw.githubusercontent.com/LSHTMPathogenSeqLab/amplicon-seq/main/db/kmers.txt",kmer_file)
+    if not os.path.isfile(kmer_file) or update==True:
+        import urllib.request
+        sys.stderr.write("Downloading kmers\n")
+        urllib.request.urlretrieve("https://raw.githubusercontent.com/LSHTMPathogenSeqLab/amplicon-seq/main/db/kmers.txt",kmer_file)
+    
     return kmer_file
 
 def main_update_db(args):
