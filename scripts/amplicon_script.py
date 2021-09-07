@@ -40,14 +40,17 @@ def main(args):
         run_cmd("samtools index %(sample)s.bam" % vars(args))
         run_cmd("samtools flagstat %(sample)s.bam > %(sample)s.flagstat.txt" % vars(args))
         run_cmd("mosdepth -x -b %(bed)s %(sample)s --thresholds 1,10,20,30  %(sample)s.bam" % vars(args))
-        run_cmd("bedtools coverage -a %(bed)s -b %(sample)s.bam -mean > %(sample)s_coverage_aedes_mean.txt" % vars(args))
+        run_cmd("bedtools coverage -a %(bed)s -b %(sample)s.bam -mean > %(sample)s_region_coverage.txt" % vars(args))
+        run_cmd("sambamba depth base %(sample)s.bam > %(sample)s.coverage.txt" % vars(args))
         # run_cmd("freebayes -f %(ref)s -t %(bed)s --haplotype-length -1 %(sample)s.bam --min-base-quality %(min_base_qual)s | bcftools view -Oz -o %(sample)s.vcf.gz" % vars(args))
     
     with open("bam_list.txt","w") as O:
         for s in samples:
             O.write("%s.bam\n" % (s))
 
-    run_cmd("freebayes -f %(ref)s -t %(bed)s -L bam_list.txt --haplotype-length -1 --min-coverage 50 --min-base-quality %(min_base_qual)s --gvcf --gvcf-dont-use-chunk true | bcftools view -T %(bed)s | bcftools norm -f %(ref)s | bcftools sort -Oz -o combined.genotyped.vcf.gz" % vars(args))
+    
+    args.min_adf_cmd = f" | amplicon_setGT.py --min-adf {args.min_adf}" if args.min_adf else ""
+    run_cmd("freebayes -f %(ref)s -t %(bed)s -L bam_list.txt --haplotype-length -1 --min-coverage 50 --min-base-quality %(min_base_qual)s --gvcf --gvcf-dont-use-chunk true | bcftools view -T %(bed)s %(min_adf_cmd)s | bcftools norm -f %(ref)s | bcftools sort -Oz -o combined.genotyped.vcf.gz" % vars(args))
     run_cmd(r"bcftools query -f '%CHROM\t%POS[\t%DP]\n' combined.genotyped.vcf.gz > tmp.txt")
 
     run_cmd("bcftools filter -i 'FMT/DP>10' -S . combined.genotyped.vcf.gz | bcftools view -i 'QUAL>30' | bcftools sort | bcftools norm -m - -Oz -o tmp.vcf.gz" % vars(args))
@@ -91,6 +94,7 @@ parser.add_argument('--position-info',type=str,help='Position info file',require
 parser.add_argument('--trim',action="store_true",help='Perform triming')
 parser.add_argument('--trim-qv',default=20,type=int,help='Quality value to use in the sliding window analysis')
 parser.add_argument('--min-base-qual',default=30,type=int,help='Minimum base quality to use by freebayes')
+parser.add_argument('--min-adf',type=float,help='Set a minimum frequency for a mixed call')
 parser.add_argument('--sample-prefix',default="",help=argparse.SUPPRESS)
 parser.add_argument('--version', action='version', version='%(prog)s 1.0')
 parser.set_defaults(func=main)
