@@ -6,7 +6,7 @@ setuptools.setup(
 
 	name="amplicon-seq",
 
-	version="0.0.2",
+	version="0.0.3",
 	packages=["amplicon_seq"],
 	license="MIT",
 	long_description="Amplicon sequencing command line tool",
