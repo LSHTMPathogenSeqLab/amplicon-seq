@@ -42,18 +42,31 @@ def main(args):
         run_cmd("mosdepth -x -b %(bed)s %(sample)s --thresholds 1,10,20,30  %(sample)s.bam" % vars(args))
         run_cmd("bedtools coverage -a %(bed)s -b %(sample)s.bam -mean > %(sample)s_region_coverage.txt" % vars(args))
         run_cmd("sambamba depth base %(sample)s.bam > %(sample)s.coverage.txt" % vars(args))
-        # run_cmd("freebayes -f %(ref)s -t %(bed)s --haplotype-length -1 %(sample)s.bam --min-base-quality %(min_base_qual)s | bcftools view -Oz -o %(sample)s.vcf.gz" % vars(args))
+        
+        
+        run_cmd("freebayes -f %(ref)s -t %(bed)s --haplotype-length -1 %(sample)s.bam --min-base-quality %(min_base_qual)s | bcftools view -Oz -o %(sample)s.vcf.gz" % vars(args))
     
     with open("bam_list.txt","w") as O:
         for s in samples:
             O.write("%s.bam\n" % (s))
 
     
-    args.min_adf_cmd = f" | amplicon_setGT.py --min-adf {args.min_adf}" if args.min_adf else ""
-    run_cmd("freebayes -f %(ref)s -t %(bed)s -L bam_list.txt --haplotype-length -1 --min-coverage 50 --min-base-quality %(min_base_qual)s --gvcf --gvcf-dont-use-chunk true | bcftools view -T %(bed)s %(min_adf_cmd)s | bcftools norm -f %(ref)s | bcftools sort -Oz -o combined.genotyped.vcf.gz" % vars(args))
-    run_cmd(r"bcftools query -f '%CHROM\t%POS[\t%DP]\n' combined.genotyped.vcf.gz > tmp.txt")
+    # args.min_adf_cmd = f" | amplicon_setGT.py --min-adf {args.min_adf}" if args.min_adf else ""
+    run_cmd("freebayes -f %(ref)s -t %(bed)s -L bam_list.txt --haplotype-length -1 | bcftools filter -e 'QUAL<%(min_variant_qual)s' | bcftools norm -f %(ref)s | bcftools sort -Oz -o freebayes.vcf.gz" % vars(args))
+    args.tmp = " ".join(["-I %s.bam" % s for s in samples])
+    run_cmd("gatk HaplotypeCaller -R %(ref)s %(tmp)s -L %(bed)s -O /dev/stdout -OVI false | bcftools filter -e 'QUAL<%(min_variant_qual)s' | bcftools norm -f %(ref)s -Oz -o gatk.vcf.gz" % vars(args))
+    for sample in samples:
+        args.sample = sample
+        args.tmp_vcf_files = " ".join(args.vcf_files) if args.vcf_files else ""
+        run_cmd("naive_variant_caller.py --ref %(ref)s --bam %(sample)s.bam --sample %(sample)s --min-af %(min_sample_af)s --vcf-files freebayes.vcf.gz gatk.vcf.gz %(tmp_vcf_files)s | bcftools view -Oz -o %(sample)s.vcf.gz" % vars(args))
+        run_cmd("tabix -f %(sample)s.vcf.gz" % vars(args))
+    with open("vcf_list.txt","w") as O:
+        for s in samples:
+            O.write("%s.vcf.gz\n" % (s))
+    run_cmd("bcftools merge -l vcf_list.txt -Oz -o combined.vcf.gz" )
+    run_cmd(r"bcftools query -f '%CHROM\t%POS[\t%DP]\n' combined.vcf.gz > tmp.txt")
 
-    run_cmd("bcftools filter -i 'FMT/DP>10' -S . combined.genotyped.vcf.gz | bcftools view -i 'QUAL>30' | bcftools sort | bcftools norm -m - -Oz -o tmp.vcf.gz" % vars(args))
+    run_cmd("bcftools filter -i 'FMT/DP>10' -S . combined.vcf.gz | bcftools sort | bcftools norm -m - -Oz -o tmp.vcf.gz" % vars(args))
     run_cmd("bcftools view -v snps tmp.vcf.gz | bcftools csq -p a -f %(ref)s -g %(gff)s -Oz -o snps.vcf.gz" % vars(args))
     run_cmd("tabix snps.vcf.gz" % vars(args))
     run_cmd("bcftools view -v indels tmp.vcf.gz | bcftools csq -p a -f %(ref)s -g %(gff)s -Oz -o indels.vcf.gz" % vars(args))
@@ -96,6 +109,10 @@ parser.add_argument('--trim-qv',default=20,type=int,help='Quality value to use i
 parser.add_argument('--min-base-qual',default=30,type=int,help='Minimum base quality to use by freebayes')
 parser.add_argument('--min-adf',type=float,help='Set a minimum frequency for a mixed call')
 parser.add_argument('--sample-prefix',default="",help=argparse.SUPPRESS)
+parser.add_argument('--vcf-files',type=str,nargs="+",help='VCF files with positions to include (optional)')
+parser.add_argument('--min-variant-qual',default=30,type=int,help='Quality value to use in the sliding window analysis')
+parser.add_argument('--min-sample-af',default=0.05,type=float,help='Quality value to use in the sliding window analysis')
+
 parser.add_argument('--version', action='version', version='%(prog)s 1.0')
 parser.set_defaults(func=main)
 
