@@ -119,8 +119,10 @@ def check_for_kmers(kmer_list_file,read1,read2=None):
         if len([x for x in support if x!=0])<len(support)/2:
             continue
         mean = stats.mean(support)
-        std = stats.stdev(support)
-        species_support.append({"species":s,"mean":mean,"std":std})
+        # std = stats.stdev(support)
+        # species_support.append({"species":s,"mean":mean,"std":std})
+        species_support.append({"species":s,"mean":mean})
+
     return species_support
 
 
