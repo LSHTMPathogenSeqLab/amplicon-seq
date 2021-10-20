@@ -95,6 +95,7 @@ def check_for_kmers(kmer_list_file,read1,read2=None):
         kmer_support.append({"kmer":kmer,"species":species,"num":num})
         species_set.add(species)
 
+    print(kmer_support)
     #### Test for coluzzi ###
     if len([x for x in kmer_support if x["species"]=="coluzzi" and x["num"]>0])>0:
         kmer_support = [x for x in kmer_support if x["species"]!="coluzzi"]
