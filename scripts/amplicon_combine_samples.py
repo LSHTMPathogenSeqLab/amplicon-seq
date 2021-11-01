@@ -17,6 +17,7 @@ def main(args):
                 sys.stderr.write(f"Warning! You have a duplicate sample name: {row['sample']}\n")
             samples.append(row["sample"])
 
+    print(samples)
     with open("vcf_files.txt","w") as O:
         for s in samples:
             O.write("%s.freebayes.vcf")
