@@ -84,7 +84,7 @@ def main(args):
     if not args.vcf_files and args.vcf_file_list:
         args.vcf_files = [x.strip() for x in open(args.vcf_file_list)]
     for f in args.vcf_files:
-        for l in sp.Popen(f"bcftools query -f '%CHROM\t%POS\t%REF\t%ALT\n' {f}",shell=True,stdout=sp.PIPE).stdout:
+        for l in sp.Popen(f"bcftools filter -e 'QUAL<{args.min_variant_qual}' {f} | bcftools view -c 1 | bcftools query -f '%CHROM\t%POS\t%REF\t%ALT\n' ",shell=True,stdout=sp.PIPE).stdout:
             row = l.decode().strip().split()
             variant_positions[(row[0],row[1])].add((row[2],row[3]))
 
@@ -124,6 +124,7 @@ parser.add_argument('--vcf-files',type=str,nargs="+",help='Sambamba coverage fil
 parser.add_argument('--vcf-file-list',type=str,help='Sambamba coverage file')
 parser.add_argument('--min-af',type=float,default=0.05,help='Sambamba coverage file')
 parser.add_argument('--no-ploidy',action="store_true",help='Sambamba coverage file')
+parser.add_argument('--min-variant-qual',default=30,type=int,help='Quality value to use as a minimum threshold')
 parser.set_defaults(func=main)
 args = parser.parse_args()
 args.func(args)

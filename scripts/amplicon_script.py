@@ -35,7 +35,7 @@ def main(args):
         run_cmd("mosdepth -x -b %(bed)s %(sample)s --thresholds 1,10,20,30  %(sample)s.bam" % vars(args))
         run_cmd("bedtools coverage -a %(bed)s -b %(sample)s.bam -mean > %(sample)s_region_coverage.txt" % vars(args))
         run_cmd("sambamba depth base %(sample)s.bam > %(sample)s.coverage.txt" % vars(args))
-        run_cmd("freebayes -f %(ref)s -t %(bed)s %(sample)s.bam > %(sample)s.freebayes.vcf" % vars(args))
+        run_cmd("freebayes -f %(ref)s -t %(bed)s %(sample)s.bam --haplotype-length -1> %(sample)s.freebayes.vcf" % vars(args))
         run_cmd("gatk HaplotypeCaller -R %(ref)s -L %(bed)s  -I %(sample)s.bam -O %(sample)s.gatk.vcf" % vars(args))
 
     if not args.per_sample_only:
