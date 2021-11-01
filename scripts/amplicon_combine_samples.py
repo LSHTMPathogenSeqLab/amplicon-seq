@@ -17,15 +17,13 @@ def main(args):
                 sys.stderr.write(f"Warning! You have a duplicate sample name: {row['sample']}\n")
             samples.append(row["sample"])
 
-    print(samples)
     with open("vcf_files.txt","w") as O:
         for s in samples:
-            print(s)
             O.write("%s.freebayes.vcf\n")
             O.write("%s.gatk.vcf\n")
     for sample in samples:
         args.sample = sample
-        run_cmd("naive_variant_caller.py --ref %(ref)s --bam %(sample)s.bam --sample %(sample)s --min-af %(min_sample_af)s --vcf-file-list vcf_list.txt | bcftools view -Oz -o %(sample)s.vcf.gz" % vars(args))
+        run_cmd("naive_variant_caller.py --ref %(ref)s --bam %(sample)s.bam --sample %(sample)s --min-af %(min_sample_af)s --vcf-file-list vcf_files.txt | bcftools view -Oz -o %(sample)s.vcf.gz" % vars(args))
         run_cmd("tabix -f %(sample)s.vcf.gz" % vars(args))
     with open("vcf_list.txt","w") as O:
         for s in samples:
