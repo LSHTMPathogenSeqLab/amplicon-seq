@@ -102,7 +102,7 @@ parser.add_argument('--sample-prefix',default="",help=argparse.SUPPRESS)
 parser.add_argument('--vcf-files',type=str,nargs="+",help='VCF files with positions to include (optional)')
 parser.add_argument('--min-variant-qual',default=30,type=int,help='Quality value to use in the sliding window analysis')
 parser.add_argument('--min-sample-af',default=0.05,type=float,help='Quality value to use in the sliding window analysis')
-parser.add_argument('--per-sample-only',action="store_true",help='Perform triming')
+parser.add_argument('--per-sample-only',action="store_true",help='Perform per-sample analysis only')
 parser.add_argument('--version', action='version', version='%(prog)s 1.0')
 parser.set_defaults(func=main)
 
