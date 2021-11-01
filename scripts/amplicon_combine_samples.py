@@ -20,8 +20,8 @@ def main(args):
     print(samples)
     with open("vcf_files.txt","w") as O:
         for s in samples:
-            O.write("%s.freebayes.vcf")
-            O.write("%s.gatk.vcf")
+            O.write("%s.freebayes.vcf\n")
+            O.write("%s.gatk.vcf\n")
     for sample in samples:
         args.sample = sample
         run_cmd("naive_variant_caller.py --ref %(ref)s --bam %(sample)s.bam --sample %(sample)s --min-af %(min_sample_af)s --vcf-file-list vcf_list.txt | bcftools view -Oz -o %(sample)s.vcf.gz" % vars(args))
