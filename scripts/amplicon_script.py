@@ -35,20 +35,23 @@ def main(args):
         run_cmd("mosdepth -x -b %(bed)s %(sample)s --thresholds 1,10,20,30  %(sample)s.bam" % vars(args))
         run_cmd("bedtools coverage -a %(bed)s -b %(sample)s.bam -mean > %(sample)s_region_coverage.txt" % vars(args))
         run_cmd("sambamba depth base %(sample)s.bam > %(sample)s.coverage.txt" % vars(args))
-    
+        run_cmd("freebayes -f %(ref)s -t %(bed)s %(sample)s.bam > %(sample)s.freebayes.vcf")
+        run_cmd("gatk HaplotypeCaller -R %(ref)s -L %(bed)s  -I %(sample)s.bam -O %(sample)s.gatk.vcf")
 
     if not args.per_sample_only:
-        with open("bam_list.txt","w") as O:
+        # with open("bam_list.txt","w") as O:
+        #     for s in samples:
+        #         O.write("%s.bam\n" % (s))
+        # run_cmd("freebayes -f %(ref)s -t %(bed)s -L bam_list.txt --haplotype-length -1 | bcftools filter -e 'QUAL<%(min_variant_qual)s' | bcftools norm -f %(ref)s | bcftools sort -Oz -o freebayes.vcf.gz" % vars(args))
+        # args.tmp = " ".join(["-I %s.bam" % s for s in samples])
+        # run_cmd("gatk HaplotypeCaller -R %(ref)s %(tmp)s -L %(bed)s -O /dev/stdout -OVI false | bcftools filter -e 'QUAL<%(min_variant_qual)s' | bcftools norm -f %(ref)s -Oz -o gatk.vcf.gz" % vars(args))
+        with open("vcf_files.txt","w") as O:
             for s in samples:
-                O.write("%s.bam\n" % (s))
-        # args.min_adf_cmd = f" | amplicon_setGT.py --min-adf {args.min_adf}" if args.min_adf else ""
-        run_cmd("freebayes -f %(ref)s -t %(bed)s -L bam_list.txt --haplotype-length -1 | bcftools filter -e 'QUAL<%(min_variant_qual)s' | bcftools norm -f %(ref)s | bcftools sort -Oz -o freebayes.vcf.gz" % vars(args))
-        args.tmp = " ".join(["-I %s.bam" % s for s in samples])
-        run_cmd("gatk HaplotypeCaller -R %(ref)s %(tmp)s -L %(bed)s -O /dev/stdout -OVI false | bcftools filter -e 'QUAL<%(min_variant_qual)s' | bcftools norm -f %(ref)s -Oz -o gatk.vcf.gz" % vars(args))
+                O.write("%s.freebayes.vcf")
+                O.write("%s.gatk.vcf")
         for sample in samples:
             args.sample = sample
-            args.tmp_vcf_files = " ".join(args.vcf_files) if args.vcf_files else ""
-            run_cmd("naive_variant_caller.py --ref %(ref)s --bam %(sample)s.bam --sample %(sample)s --min-af %(min_sample_af)s --vcf-files freebayes.vcf.gz gatk.vcf.gz %(tmp_vcf_files)s | bcftools view -Oz -o %(sample)s.vcf.gz" % vars(args))
+            run_cmd("naive_variant_caller.py --ref %(ref)s --bam %(sample)s.bam --sample %(sample)s --min-af %(min_sample_af)s --vcf-file-list vcf_list.txt | bcftools view -Oz -o %(sample)s.vcf.gz" % vars(args))
             run_cmd("tabix -f %(sample)s.vcf.gz" % vars(args))
         with open("vcf_list.txt","w") as O:
             for s in samples:

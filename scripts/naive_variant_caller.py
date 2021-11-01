@@ -81,6 +81,8 @@ def write_vcf(ref,variants,sample):
 
 def main(args):
     variant_positions = defaultdict(set)
+    if not args.vcf_files and args.vcf_file_list:
+        args.vcf_files = [x.strip() for x in open(args.vcf_file_list)]
     for f in args.vcf_files:
         for l in sp.Popen(f"bcftools query -f '%CHROM\t%POS\t%REF\t%ALT\n' {f}",shell=True,stdout=sp.PIPE).stdout:
             row = l.decode().strip().split()
@@ -119,6 +121,7 @@ parser.add_argument('--bam',type=str,help='Sambamba coverage file')
 parser.add_argument('--ref',type=str,help='Sambamba coverage file')
 parser.add_argument('--sample',type=str,help='Sambamba coverage file')
 parser.add_argument('--vcf-files',type=str,nargs="+",help='Sambamba coverage file')
+parser.add_argument('--vcf-file-list',type=str,help='Sambamba coverage file')
 parser.add_argument('--min-af',type=float,default=0.05,help='Sambamba coverage file')
 parser.add_argument('--no-ploidy',action="store_true",help='Sambamba coverage file')
 parser.set_defaults(func=main)
