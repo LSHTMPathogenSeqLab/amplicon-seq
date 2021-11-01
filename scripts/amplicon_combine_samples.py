@@ -17,28 +17,28 @@ def main(args):
                 sys.stderr.write(f"Warning! You have a duplicate sample name: {row['sample']}\n")
             samples.append(row["sample"])
 
-    # with open("vcf_files.txt","w") as O:
-    #     for s in samples:
-    #         O.write(f"{s}.freebayes.vcf\n")
-    #         O.write(f"{s}.gatk.vcf\n")
-    # for sample in samples:
-    #     args.sample = sample
-    #     run_cmd("naive_variant_caller.py --ref %(ref)s --bam %(sample)s.bam --sample %(sample)s --min-af %(min_sample_af)s --vcf-file-list vcf_files.txt | bcftools view -Oz -o %(sample)s.vcf.gz" % vars(args))
-    #     run_cmd("tabix -f %(sample)s.vcf.gz" % vars(args))
-    # with open("vcf_list.txt","w") as O:
-    #     for s in samples:
-    #         O.write("%s.vcf.gz\n" % (s))
-    # run_cmd("bcftools merge -l vcf_list.txt -Oz -o combined.vcf.gz" )
+    with open("vcf_files.txt","w") as O:
+        for s in samples:
+            O.write(f"{s}.freebayes.vcf\n")
+            O.write(f"{s}.gatk.vcf\n")
+    for sample in samples:
+        args.sample = sample
+        run_cmd("naive_variant_caller.py --ref %(ref)s --bam %(sample)s.bam --sample %(sample)s --min-af %(min_sample_af)s --vcf-file-list vcf_files.txt | bcftools view -Oz -o %(sample)s.vcf.gz" % vars(args))
+        run_cmd("tabix -f %(sample)s.vcf.gz" % vars(args))
+    with open("vcf_list.txt","w") as O:
+        for s in samples:
+            O.write("%s.vcf.gz\n" % (s))
+    run_cmd("bcftools merge -l vcf_list.txt -Oz -o combined.vcf.gz" )
 
-    # run_cmd("bcftools filter -i 'FMT/DP>10' -S . combined.vcf.gz | bcftools sort -Oz -o tmp.vcf.gz" % vars(args))
-    # run_cmd("bcftools view -v snps tmp.vcf.gz | bcftools csq -p a -f %(ref)s -g %(gff)s -Oz -o snps.vcf.gz" % vars(args))
-    # run_cmd("tabix snps.vcf.gz" % vars(args))
-    # run_cmd("bcftools view -v indels tmp.vcf.gz | bcftools csq -p a -f %(ref)s -g %(gff)s -Oz -o indels.vcf.gz" % vars(args))
-    # run_cmd("tabix indels.vcf.gz" % vars(args))
-    # run_cmd(r"bcftools query snps.vcf.gz -f '[%SAMPLE\t%CHROM\t%POS\t%REF\t%ALT\t%QUAL\t%GT\t%TGT\t%DP\t%AD\n]' > combined_genotyped_filtered_formatted.snps.txt")    
-    # run_cmd(r"bcftools query snps.vcf.gz -f '[%SAMPLE\t%CHROM\t%POS\t%REF\t%ALT\t%QUAL\t%GT\t%TGT\t%DP\t%AD\t%TBCSQ\n]' > combined_genotyped_filtered_formatted.snps.trans.txt")
-    # run_cmd(r"bcftools query indels.vcf.gz -f '[%SAMPLE\t%CHROM\t%POS\t%REF\t%ALT\t%QUAL\t%GT\t%TGT\t%DP\t%AD\n]' > combined_genotyped_filtered_formatted.indels.txt")
-    # run_cmd(r"bcftools query indels.vcf.gz -f '[%SAMPLE\t%CHROM\t%POS\t%REF\t%ALT\t%QUAL\t%GT\t%TGT\t%DP\t%AD\t%TBCSQ\n]' > combined_genotyped_filtered_formatted.indels.trans.txt")
+    run_cmd("bcftools filter -i 'FMT/DP>10' -S . combined.vcf.gz | bcftools sort -Oz -o tmp.vcf.gz" % vars(args))
+    run_cmd("bcftools view -v snps tmp.vcf.gz | bcftools csq -p a -f %(ref)s -g %(gff)s -Oz -o snps.vcf.gz" % vars(args))
+    run_cmd("tabix snps.vcf.gz" % vars(args))
+    run_cmd("bcftools view -v indels tmp.vcf.gz | bcftools csq -p a -f %(ref)s -g %(gff)s -Oz -o indels.vcf.gz" % vars(args))
+    run_cmd("tabix indels.vcf.gz" % vars(args))
+    run_cmd(r"bcftools query snps.vcf.gz -f '[%SAMPLE\t%CHROM\t%POS\t%REF\t%ALT\t%QUAL\t%GT\t%TGT\t%DP\t%AD\n]' > combined_genotyped_filtered_formatted.snps.txt")    
+    run_cmd(r"bcftools query snps.vcf.gz -f '[%SAMPLE\t%CHROM\t%POS\t%REF\t%ALT\t%QUAL\t%GT\t%TGT\t%DP\t%AD\t%TBCSQ\n]' > combined_genotyped_filtered_formatted.snps.trans.txt")
+    run_cmd(r"bcftools query indels.vcf.gz -f '[%SAMPLE\t%CHROM\t%POS\t%REF\t%ALT\t%QUAL\t%GT\t%TGT\t%DP\t%AD\n]' > combined_genotyped_filtered_formatted.indels.txt")
+    run_cmd(r"bcftools query indels.vcf.gz -f '[%SAMPLE\t%CHROM\t%POS\t%REF\t%ALT\t%QUAL\t%GT\t%TGT\t%DP\t%AD\t%TBCSQ\n]' > combined_genotyped_filtered_formatted.indels.trans.txt")
 
     bedlines = []
     amplicon_positions = []
@@ -58,7 +58,7 @@ def main(args):
         return overlaps
 
     dp = defaultdict(dict)
-    for s in tqdm(samples):
+    for s in samples:
         for l in gzip.open(f"{s}.per-base.bed.gz"):
             row = l.decode().strip().split()
             overlaps = overlap_bedlines(row,bedlines)

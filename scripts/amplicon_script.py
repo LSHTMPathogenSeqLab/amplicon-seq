@@ -4,6 +4,8 @@ import subprocess as sp
 import csv
 import fastq2matrix as fm
 from fastq2matrix import run_cmd
+from collections import defaultdict
+import gzip
 
 def main(args):
 
@@ -39,12 +41,6 @@ def main(args):
         run_cmd("gatk HaplotypeCaller -R %(ref)s -L %(bed)s  -I %(sample)s.bam -O %(sample)s.gatk.vcf" % vars(args))
 
     if not args.per_sample_only:
-        # with open("bam_list.txt","w") as O:
-        #     for s in samples:
-        #         O.write("%s.bam\n" % (s))
-        # run_cmd("freebayes -f %(ref)s -t %(bed)s -L bam_list.txt --haplotype-length -1 | bcftools filter -e 'QUAL<%(min_variant_qual)s' | bcftools norm -f %(ref)s | bcftools sort -Oz -o freebayes.vcf.gz" % vars(args))
-        # args.tmp = " ".join(["-I %s.bam" % s for s in samples])
-        # run_cmd("gatk HaplotypeCaller -R %(ref)s %(tmp)s -L %(bed)s -O /dev/stdout -OVI false | bcftools filter -e 'QUAL<%(min_variant_qual)s' | bcftools norm -f %(ref)s -Oz -o gatk.vcf.gz" % vars(args))
         with open("vcf_files.txt","w") as O:
             for s in samples:
                 O.write("%s.freebayes.vcf")
@@ -71,22 +67,47 @@ def main(args):
 
 
     
+        bedlines = []
+        amplicon_positions = []
+        for l in open("/home/jody/projects/emma/Reference_files/amplicon_pos_ref.bed"):
+            row = l.strip().split()
+            bedlines.append(row)        
+            for p in range(int(row[1]),int(row[2])):
+                amplicon_positions.append((row[0],p))
+
+        def overlap_bedlines(a,bedlines):
+            overlaps = []
+            for b in bedlines:
+                if b[0]==a[0]:
+                    overlap = max(0, min(int(a[2]), int(b[2])) - max(int(a[1]), int(b[1])))
+                    if overlap>0:
+                        overlaps.append([b[0],max(int(a[1]),int(b[1])),min(int(a[2]),int(b[2]))])
+            return overlaps
+
+        dp = defaultdict(dict)
+        for s in samples:
+            for l in gzip.open(f"{s}.per-base.bed.gz"):
+                row = l.decode().strip().split()
+                overlaps = overlap_bedlines(row,bedlines)
+                if len(overlaps)>0:
+                    for overlap in overlaps:
+                        for pos in range(int(overlap[1]),int(overlap[2])):
+                            dp[s][(row[0],pos)] = int(row[3])
+
         pos_info = {}
         for l in open(args.position_info):
             row = l.strip().split()
-            pos_info[(row[0],row[1])] = (row[2],row[3])
+            pos_info[(row[0],int(row[1]))] = (row[2],row[3])
+        
         with open("depth_info.txt", "w") as O:
             O.write("chrom\tpos\tgene\tcsq\t%s\n" % "\t".join(samples))
-            for l in open("tmp.txt"):
-                row = l.strip().split()
-                if (row[0],row[1]) in pos_info:
-                    p = pos_info[(row[0],row[1])]
-                    row.insert(2,p[1])
-                    row.insert(2,p[0])
-                else:
-                    row.insert(2,"NA")
-                    row.insert(2,"NA")
-                O.write("%s\n" % ("\t".join(row)))
+            for chrom,pos in amplicon_positions:
+                if (chrom,pos) in pos_info:
+                    d = pos_info[(chrom,pos)]
+                    O.write("%s\t%s\t%s\t%s\t%s\n" % (
+                        chrom,pos,d[0],d[1],
+                        "\t".join([str(dp[s].get((chrom,pos),0)) for s in samples])
+                    ))
 
 # Set up the parser
 parser = argparse.ArgumentParser(description='Amplicon sequencing analysis script',formatter_class=argparse.ArgumentDefaultsHelpFormatter)
