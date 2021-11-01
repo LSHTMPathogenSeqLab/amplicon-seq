@@ -17,20 +17,14 @@ def main(args):
                 sys.stderr.write(f"Warning! You have a duplicate sample name: {row['sample']}\n")
             samples.append(row["sample"])
 
-    with open("bam_list.txt","w") as O:
+    with open("vcf_files.txt","w") as O:
         for s in samples:
-            O.write("%s.bam\n" % (s))
-
-    run_cmd("freebayes -f %(ref)s -t %(bed)s -L bam_list.txt --haplotype-length -1 | bcftools filter -e 'QUAL<%(min_variant_qual)s' | bcftools norm -f %(ref)s | bcftools sort -Oz -o freebayes.vcf.gz" % vars(args))
-    args.tmp = " ".join(["-I %s.bam" % s for s in samples])
-    run_cmd("gatk HaplotypeCaller -R %(ref)s %(tmp)s -L %(bed)s -O /dev/stdout -OVI false | bcftools filter -e 'QUAL<%(min_variant_qual)s' | bcftools norm -f %(ref)s -Oz -o gatk.vcf.gz" % vars(args))
-
+            O.write("%s.freebayes.vcf")
+            O.write("%s.gatk.vcf")
     for sample in samples:
         args.sample = sample
-        args.tmp_vcf_files = " ".join(args.vcf_files) if args.vcf_files else ""
-        run_cmd("naive_variant_caller.py --ref %(ref)s --bam %(sample)s.bam --sample %(sample)s --min-af %(min_sample_af)s --vcf-files freebayes.vcf.gz gatk.vcf.gz %(tmp_vcf_files)s | bcftools view -Oz -o %(sample)s.vcf.gz" % vars(args))
+        run_cmd("naive_variant_caller.py --ref %(ref)s --bam %(sample)s.bam --sample %(sample)s --min-af %(min_sample_af)s --vcf-file-list vcf_list.txt | bcftools view -Oz -o %(sample)s.vcf.gz" % vars(args))
         run_cmd("tabix -f %(sample)s.vcf.gz" % vars(args))
-
     with open("vcf_list.txt","w") as O:
         for s in samples:
             O.write("%s.vcf.gz\n" % (s))
