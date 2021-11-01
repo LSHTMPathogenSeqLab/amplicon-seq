@@ -20,6 +20,7 @@ def main(args):
     print(samples)
     with open("vcf_files.txt","w") as O:
         for s in samples:
+            print(s)
             O.write("%s.freebayes.vcf\n")
             O.write("%s.gatk.vcf\n")
     for sample in samples:
