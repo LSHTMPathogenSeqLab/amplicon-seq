@@ -13,6 +13,8 @@ import glob
 
 def crate_snpeff_db(name,ref,gff):
     tmp = glob.glob(f"{sys.base_prefix}/share/snpeff*")[0]
+    if not os.path.isdir(f"{tmp}/data/"):
+        os.mkdir(f"{tmp}/data/")
     d = f"{tmp}/data/{name}"
     if os.path.isdir(d):
         return
