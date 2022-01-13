@@ -64,7 +64,7 @@ def get_canonical_kmer(kmer):
     return kmer if nkmer<nrkmer else rkmer
 
 
-def check_for_kmers(kmer_list_file,read1,read2=None):
+def check_for_kmers(kmer_list_file,read1,read2=None,kmer_table=None):
 
     kmer_dict = {}
     for l in open(kmer_list_file):
@@ -95,6 +95,10 @@ def check_for_kmers(kmer_list_file,read1,read2=None):
         kmer_support.append({"kmer":kmer,"species":species,"num":num})
         species_set.add(species)
 
+    if kmer_table:
+        with open(kmer_table,"w") as O:
+            for k in kmer_support:
+                O.write("%(kmer)s\t%(species)s\t%(num)s\n" % k)
     print(kmer_support)
     #### Test for coluzzi ###
     if len([x for x in kmer_support if x["species"]=="coluzzi" and x["num"]>0])>0:
@@ -172,7 +176,8 @@ def main_collate(args):
 def main_speciate(args):
     kmer_file  = get_db()
 
-    results = check_for_kmers(kmer_file,args.read1,args.read2)
+    kmer_table_file = f"{args.prefix}.kmer_table.txt"
+    results = check_for_kmers(kmer_file,args.read1,args.read2,kmer_table=kmer_table_file)
     results = sorted(results,key=lambda x: x["mean"],reverse=True)
     with open(args.prefix+".species.txt","w") as O:
         O.write("\t".join(results[0].keys())+"\n")
