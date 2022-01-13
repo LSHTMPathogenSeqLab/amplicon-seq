@@ -42,7 +42,7 @@ def main(args):
 
     bedlines = []
     amplicon_positions = []
-    for l in open("/home/jody/projects/emma/Reference_files/amplicon_pos_ref.bed"):
+    for l in open(args.bed):
         row = l.strip().split()
         bedlines.append(row)        
         for p in range(int(row[1]),int(row[2])):
