@@ -21,21 +21,21 @@ def main(args):
     for row in reader:
         if row["sample"]=="": continue
         index[(row["I1"],row["I2"])] = row["sample"]
+        index[(row["I2"],row["I1"])] = row["sample"]
         index_size = len(row["I1"])
     R1 = gzip.open(args.R1)
     R2 = gzip.open(args.R2)
     R1_FILES = {s:gzip.open("%s_1.fastq.gz" % s,"wb") for s in index.values()}
     R2_FILES = {s:gzip.open("%s_2.fastq.gz" % s,"wb") for s in index.values()}
+    UNKNOWN1 = gzip.open("Unknown_1.fastq.gz","wb")
+    UNKNOWN2 = gzip.open("Unknown_2.fastq.gz","wb")
     for l in subprocess.Popen("gunzip -c %s | wc -l" % args.R1, shell=True,stdout=subprocess.PIPE).stdout:
         num_lines = int(l.strip())
     reads_assigned = {s:0 for s in index.values()}
     reads_assigned["not_assigned"] = 0
     for i in tqdm(range(int(num_lines/4))):
-    # for i in range(4):
         data1 = [R1.readline() for _ in range(4)]
         data2 = [R2.readline() for _ in range(4)]
-        # print(data1[0].decode())
-        # print(data1)
 
         indices = (data1[1].decode()[:index_size],data2[1].decode()[:index_size])
         if indices in index:
@@ -63,7 +63,9 @@ def main(args):
                 # R2_FILES[sample].write("".join(data2))
             else:
                 reads_assigned["not_assigned"]+=1
-
+                for i in range(4):
+                    UNKNOWN1.write(data1[i])
+                    UNKNOWN2.write(data2[i])
 
     print(reads_assigned)
 
