@@ -21,7 +21,8 @@ def main(args):
     for row in reader:
         if row["sample"]=="": continue
         index[(row["I1"],row["I2"])] = row["sample"]
-        index[(row["I2"],row["I1"])] = row["sample"]
+        if args.search_flipped_index:
+            index[(row["I2"],row["I1"])] = row["sample"]
         index_size = len(row["I1"])
     R1 = gzip.open(args.R1)
     R2 = gzip.open(args.R2)
@@ -76,6 +77,7 @@ parser.add_argument('--R1','-1',type=str,help='NGS Platform',required=True)
 parser.add_argument('--R2','-2',type=str,help='NGS Platform',required=True)
 parser.add_argument('--index',type=str,help='NGS Platform',required=True)
 parser.add_argument('--max-mismatches',default=1,type=int,help='NGS Platform')
+parser.add_argument('--search-flipped-index',action='store_true',help='NGS Platform')
 parser.set_defaults(func=main)
 
 args = parser.parse_args()

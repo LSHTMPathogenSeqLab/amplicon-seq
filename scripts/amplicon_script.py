@@ -20,8 +20,10 @@ def main(args):
     fm.bwa_index(args.ref)
     fm.create_seq_dict(args.ref)
     fm.faidx(args.ref)
-
-    run_cmd("demultiplex_fastq.py --R1 %(read1)s --R2 %(read2)s --index %(index_file)s" % vars(args))
+    cmd = "demultiplex_fastq.py --R1 %(read1)s --R2 %(read2)s --index %(index_file)s" % vars(args)
+    if args.search_flipped_index:
+        cmd += " --search-flipped_index"
+    run_cmd(cmd)
 
     for sample in samples:
         args.sample = sample
@@ -127,6 +129,7 @@ parser.add_argument('--vcf-files',type=str,nargs="+",help='VCF files with positi
 parser.add_argument('--min-variant-qual',default=30,type=int,help='Quality value to use in the sliding window analysis')
 parser.add_argument('--min-sample-af',default=0.05,type=float,help='Quality value to use in the sliding window analysis')
 parser.add_argument('--per-sample-only',action="store_true",help='Perform triming')
+parser.add_argument('--search-flipped-index',action='store_true',help='NGS Platform')
 parser.add_argument('--version', action='version', version='%(prog)s 1.0')
 parser.set_defaults(func=main)
 

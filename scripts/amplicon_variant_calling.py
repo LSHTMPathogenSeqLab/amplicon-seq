@@ -15,8 +15,11 @@ def main(args):
     fm.bwa_index(args.ref)
     fm.faidx(args.ref)
 
-    fm.run_cmd("demultiplex_fastq.py --R1 %(read1)s --R2 %(read2)s --index %(index_file)s" % vars(args))
-
+    cmd = "demultiplex_fastq.py --R1 %(read1)s --R2 %(read2)s --index %(index_file)s" % vars(args)
+    if args.search_flipped_index:
+        cmd += " --search-flipped_index"
+    fm.run_cmd(cmd)
+    
     for sample in samples:
         args.sample = sample
         fm.run_cmd("bwa mem -t 10 -R \"@RG\\tID:%(sample)s\\tSM:%(sample)s\\tPL:Illumina\" %(ref)s %(sample)s_1.fastq.gz %(sample)s_2.fastq.gz | samclip --ref %(ref)s --max 50 | samtools sort -o %(sample)s.bam -" % vars(args))
