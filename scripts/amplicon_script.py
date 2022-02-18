@@ -22,7 +22,7 @@ def main(args):
     fm.faidx(args.ref)
     cmd = "demultiplex_fastq.py --R1 %(read1)s --R2 %(read2)s --index %(index_file)s" % vars(args)
     if args.search_flipped_index:
-        cmd += " --search-flipped_index"
+        cmd += " --search-flipped-index"
     run_cmd(cmd)
 
     for sample in samples:
