@@ -46,16 +46,16 @@ def main(args):
     if not args.per_sample_only:
         with open("vcf_list.txt","w") as O:
             for s in samples:
-                O.write("%s.freebayes.vcf")
-                O.write("%s.gatk.vcf")
+                O.write("%s.freebayes.vcf" % s)
+                O.write("%s.gatk.vcf" % s)
         for sample in samples:
             args.sample = sample
             run_cmd("naive_variant_caller.py --ref %(ref)s --bam %(sample)s.bam --sample %(sample)s --min-af %(min_sample_af)s --vcf-file-list vcf_list.txt | bcftools view -Oz -o %(sample)s.vcf.gz" % vars(args))
             run_cmd("tabix -f %(sample)s.vcf.gz" % vars(args))
-        with open("vcf_list.txt","w") as O:
+        with open("sample_vcf_list.txt","w") as O:
             for s in samples:
                 O.write("%s.vcf.gz\n" % (s))
-        run_cmd("bcftools merge -l vcf_list.txt -Oz -o combined.vcf.gz" )
+        run_cmd("bcftools merge -l sample_vcf_list.txt -Oz -o combined.vcf.gz" )
         run_cmd(r"bcftools query -f '%CHROM\t%POS[\t%DP]\n' combined.vcf.gz > tmp.txt")
 
         run_cmd("bcftools filter -i 'FMT/DP>10' -S . combined.vcf.gz | bcftools sort -Oz -o tmp.vcf.gz" % vars(args))
