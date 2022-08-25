@@ -1,3 +1,4 @@
+#! /usr/bin/env python
 import sys
 import argparse
 import subprocess as sp
@@ -43,7 +44,7 @@ def main(args):
         run_cmd("gatk HaplotypeCaller -R %(ref)s -L %(bed)s  -I %(sample)s.bam -O %(sample)s.gatk.vcf" % vars(args))
 
     if not args.per_sample_only:
-        with open("vcf_files.txt","w") as O:
+        with open("vcf_list.txt","w") as O:
             for s in samples:
                 O.write("%s.freebayes.vcf")
                 O.write("%s.gatk.vcf")
