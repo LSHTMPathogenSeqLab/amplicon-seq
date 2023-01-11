@@ -42,3 +42,61 @@ optional arguments:
   --min-base-qual MIN_BASE_QUAL
                         Minimum base quality to use by freebayes (default: 30)
 ```
+
+## Human genotyping amplicon pipeline
+
+Download the latest clinvar vcf to annotate variations with rsIDs and clinical significance (now required).
+
+```
+curl -s ftp://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh38/clinvar.vcf.gz | gunzip -c > clinvar_GRCh38.vcf.gz
+
+```
+
+### Usage
+```
+human_amplicon_script.py [-h] --index-file INDEX_FILE --read1 READ1 --read2 READ2 
+                              --ref REF --gff GFF --bed BED --clinVar CLINVAR 
+                                [--trim]
+                                [--trim-qv TRIM_QV]
+                                [--min-base-qual MIN_BASE_QUAL]
+                                [--min-adf MIN_ADF]
+                                [--vcf-files VCF_FILES [VCF_FILES ...]]
+                                [--min-variant-qual MIN_VARIANT_QUAL]
+                                [--min-sample-af MIN_SAMPLE_AF]
+                                [--per-sample-only] [--version]
+
+Amplicon sequencing analysis script
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --index-file          INDEX_FILE
+                        CSV file containing fields "Sample,I1,I2" (default:
+                        None)
+  --read1 READ1         Forward read file (default: None)
+  --read2 READ2         Reverse read file (default: None)
+  --ref REF             Reference fasta (default: None)
+  --gff GFF             GFF file (default: None)
+  --bed BED             BED file with genes/amplicon locations (default: None)
+  --clinVar CLINVAR     ClinVar SNP annotation file (default: None)
+                        Position info file (default: None)
+  --trim                Perform triming (default: False)
+  --trim-qv TRIM_QV     Quality value to use in the sliding window analysis
+                        (default: 20)
+  --min-base-qual       MIN_BASE_QUAL
+                        Minimum base quality to use by freebayes (default: 30)
+  --min-adf MIN_ADF     Set a minimum frequency for a mixed call (default:
+                        None)
+  --vcf-files           VCF_FILES [VCF_FILES ...]
+                        VCF files with positions to include (optional)
+                        (default: None)
+  --min-variant-qual    MIN_VARIANT_QUAL
+                        Quality value to use in the sliding window analysis
+                        (default: 30)
+  --min-sample-af       MIN_SAMPLE_AF
+                        Quality value to use in the sliding window analysis
+                        (default: 0.05)
+  --per-sample-only     Perform triming (default: False)
+  --version             show program's version number and exit
+
+
+```
