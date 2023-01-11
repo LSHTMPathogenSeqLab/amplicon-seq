@@ -100,3 +100,16 @@ optional arguments:
 
 
 ```
+
+## Plot read depth for variants of interest
+Create box plots using the read_depth_human.r or read_depth_Pfalciparum.r in the plots folder to show the read depth at positions of interest using the depth_info.txt output file from the amplicon sequencing pipeline.
+
+### Plotting read depth using depth_info.txt file
+Example using loci in humans associated with severe malarial disease
+
+![alt text](https://github.com/LSHTMPathogenSeqLab/Plasmodium_General/blob/main/plots/read_depth_plot%20.png)
+
+## Making maps using the Malaria Atlas project's databases
+Annotated implementation of the Malaria Atlas Project's package for mapping incidence and mortality rates of *P. falciparum*, as well as relevent human polymorphisms associated with disease severity using East Africa as an example.
+
+![alt text](https://github.com/LSHTMPathogenSeqLab/amplicon-seq/blob/main/plots/read_depth_plot.png)
