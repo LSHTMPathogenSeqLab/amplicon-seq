@@ -1,3 +1,4 @@
+#! /usr/bin/env python
 import sys
 import argparse
 import fastq2matrix as fm

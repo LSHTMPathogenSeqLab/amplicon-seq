@@ -1,3 +1,4 @@
+#! /usr/bin/env python
 import argparse
 import subprocess as sp
 from uuid import uuid4
