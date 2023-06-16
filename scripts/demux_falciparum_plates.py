@@ -1,4 +1,4 @@
-#! /usr/bin/env pyhton
+#! /usr/bin/env python
 import sys
 import argparse
 import subprocess as sp
