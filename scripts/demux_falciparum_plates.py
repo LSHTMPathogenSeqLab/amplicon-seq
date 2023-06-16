@@ -1,3 +1,4 @@
+#! /usr/bin/env pyhton
 import sys
 import argparse
 import subprocess as sp
