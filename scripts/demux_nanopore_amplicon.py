@@ -41,7 +41,10 @@ def read_fastq(fastq):
 
 
 def main(args):
-    tmp = "abcd" #str(uuid4())
+    if args.log_prefix:
+        tmp = args.log_prefix
+    else:
+        tmp = "abcd" #str(uuid4())
     LOG = open(f"{tmp}.log","w")
     barcode_fasta = f"{tmp}.barcodes.fasta"
     seqkit_output = f"{tmp}.seqkit.txt"
@@ -81,10 +84,11 @@ def main(args):
         if len(barcode_matches)==1:
             barcode_assignments[barcode_matches[0]].add(readname)
             assigned_reads.add(readname)
+            LOG.write(f"{readname}\t{barcode_matches[0]}\t{read_lengths[readname]}\n")
         elif len(barcode_matches)==0:
-            LOG.write(f"no_barcode_matches\t{readname}\n")
+            LOG.write(f"{readname}\tno_barcode_matches\t{read_lengths[readname]}\n")
         else:
-            LOG.write(f"multiple_barcode_matches\t{readname}\n")
+            LOG.write(f"{readname}\tmultiple_barcode_matches\t{read_lengths[readname]}\n")
 
     unassigned_reads = read_names - assigned_reads
     for readname in unassigned_reads:
@@ -113,6 +117,7 @@ parser.add_argument('--fastq',type=str,help='Reference file (lofreq required)',r
 parser.add_argument('--barcodes',type=str,help='Sample name (lofreq required)',required = True)
 parser.add_argument('--max-mismatch',type=int,default=0,help='Sample name (lofreq required)')
 parser.add_argument('--edge-size',type=int,default=10,help='Sample name (lofreq required)')
+parser.add_argument('--log-prefix',type=str,default=None,help='Sample name (lofreq required)')
 parser.set_defaults(func=main)
 args = parser.parse_args()
 args.func(args)
