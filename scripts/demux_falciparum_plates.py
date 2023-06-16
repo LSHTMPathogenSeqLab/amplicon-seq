@@ -47,4 +47,4 @@ with open(run_file,'w') as O:
     O.write("\n".join(cmds))
 sp.run("mkdir malaria-profiler-results",shell=True)
 sp.run(f"cat {run_file} | parallel -j {args.threads} --bar",shell=True)
-sp.run(f"malaria-profiler collate",shell=True)
+sp.run(f"malaria-profiler collate --dir malaria-profiler-results/",shell=True)
