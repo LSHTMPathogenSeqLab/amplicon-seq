@@ -8,35 +8,38 @@ from fastq2matrix import run_cmd
 from collections import defaultdict
 import gzip
 
+def run_cmd(cmd):
+    sys.stderr.write("Running command:\n%s\n\n" % cmd)
+    with open("/dev/null","w") as O:
+        res = sp.call(cmd,shell=True,stderr=O,stdout=O)
+    if res!=0:
+        sys.exit("Error running last command, please check!\n")
+
+
 def main(args):
 
     samples = []
-    reader = csv.DictReader(open(args.barcodes))
-    if "id" not in reader.fieldnames:
-        reader = csv.DictReader(open(args.barcodes,encoding='utf-8-sig'))
+    reader = csv.DictReader(open(args.index_file))
+    if "sample" not in reader.fieldnames:
+        reader = csv.DictReader(open(args.index_file,encoding='utf-8-sig'))
     for row in reader:
-        if row["id"]=="": continue
-        samples.append(row["id"])
+        if row["sample"]=="": continue
+        samples.append(row["sample"])
 
     fm.bwa_index(args.ref)
     fm.create_seq_dict(args.ref)
     fm.faidx(args.ref)
 
-    # Group nanopore fastq files
-    rum_cmd("zcat *.fastq.gz | gzip > grouped.fastq.gz")
 
-    # Demultiplex nanopore data by barcode
-    cmd = "demux_nanopore_amplicon.py --fastq grouped.fastq.gz --barcodes %(barcodes)s" % vars(args)
-    run_cmd(cmd)
+    for sample in samples:
+        args.sample = sample
+        run_cmd("bwa mem -t 10 -R \"@RG\\tID:%(sample)s\\tSM:%(sample)s\\tPL:nanopore\" %(ref)s %(sample)s.fastq | samclip --ref %(ref)s --max 50 | samtools sort -o %(sample)s.bam -" % vars(args))
+        run_cmd("samtools index %(sample)s.bam" % vars(args))
+        run_cmd("samtools flagstat %(sample)s.bam > %(sample)s.flagstat.txt" % vars(args))
+        run_cmd("mosdepth -x -b %(bed)s %(sample)s --thresholds 1,10,20,30  %(sample)s.bam" % vars(args))
+        run_cmd("bedtools coverage -a %(bed)s -b %(sample)s.bam -mean > %(sample)s_coverage_pf_mean.txt" % vars(args))
 
-    for id in samples:
-        args.sample = id
-        run_cmd("bwa mem -t 10 -R \"@RG\\tID:%(id)s\\tSM:%(id)s\\tPL:nanopore\" %(ref)s %(id)s.fastq | samclip --ref %(ref)s --max 50 | samtools sort -o %(id)s.bam -" % vars(args))
-        run_cmd("samtools index %(id)s.bam" % vars(args))
-        run_cmd("samtools flagstat %(id)s.bam > %(id)s.flagstat.txt" % vars(args))
-        run_cmd("mosdepth -x -b %(bed)s %(id)s --thresholds 1,10,20,30  %(id)s.bam" % vars(args))
-        run_cmd("bedtools coverage -a %(bed)s -b %(id)s.bam -mean > %(id)s_coverage_pf_mean.txt" % vars(args))
-      
+        
         with open("bam_list.txt","w") as O:
         for s in samples:
             O.write("%s.bam\n" % (s))
@@ -96,8 +99,8 @@ def main(args):
 
 # Set up the parser
 parser = argparse.ArgumentParser(description='Amplicon sequencing analysis script',formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-parser.add_argument('--fastq',type=str,help='Reference file (lofreq required)',required = True)
-parser.add_argument('--barcodes',type=str,help='Sample name (lofreq required)',required = True)
+#parser.add_argument('--fastq',type=str,help='Nanopore fastq file',required = True)
+parser.add_argument('--index-file',type=str,help='CSV file containing a single column "sample" for sample IDs',required=True)
 parser.add_argument('--ref',type=str,help='Reference fasta',required=True)
 parser.add_argument('--gff',type=str,help='GFF file',required=True)
 parser.add_argument('--bed',type=str,help='BED file with genes/amplicon locations',required=True)
