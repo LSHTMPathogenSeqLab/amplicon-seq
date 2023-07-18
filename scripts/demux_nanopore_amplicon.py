@@ -44,7 +44,7 @@ def main(args):
     if args.log_prefix:
         tmp = args.log_prefix
     else:
-        tmp = "abcd" #str(uuid4())
+        tmp = "tmp" #str(uuid4())
     LOG = open(f"{tmp}.log","w")
     barcode_fasta = f"{tmp}.barcodes.fasta"
     seqkit_output = f"{tmp}.seqkit.txt"
