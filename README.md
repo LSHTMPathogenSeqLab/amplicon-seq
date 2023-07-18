@@ -48,7 +48,8 @@ optional arguments:
 Download the latest clinvar vcf to annotate variations with rsIDs and clinical significance (now required).
 
 ```
-curl -s ftp://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh38/clinvar.vcf.gz | gunzip -c > clinvar_GRCh38.vcf.gz
+curl -s ftp://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh38/clinvar.vcf.gz > clinvar_GRCh38.vcf.gz
+tabix -f clinvar_GRCh38.vcf.gz
 
 ```
 
