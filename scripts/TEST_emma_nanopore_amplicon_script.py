@@ -90,12 +90,10 @@ def main(args):
 
 # Set up the parser
 parser = argparse.ArgumentParser(description='Amplicon sequencing analysis script',formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-#parser.add_argument('--fastq',type=str,help='Nanopore fastq file',required = True)
 parser.add_argument('--index-file',type=str,help='samples.csv with the "sample" column for sample IDs; created by "demux_nanopore_plates.py" if using 96-well plates',required=True)
 parser.add_argument('--ref',type=str,help='Reference fasta',required=True)
 parser.add_argument('--gff',type=str,help='GFF file',required=True)
 parser.add_argument('--bed',type=str,help='BED file with genes/amplicon locations',required=True)
-parser.add_argument('--clinVar',type=str,help='ClinVar SNP annotation file',required=True)
 parser.add_argument('--min-base-qual',default=30,type=int,help='Minimum base quality to use by freebayes')
 parser.add_argument('--version', action='version', version='%(prog)s 1.0')
 parser.set_defaults(func=main)
