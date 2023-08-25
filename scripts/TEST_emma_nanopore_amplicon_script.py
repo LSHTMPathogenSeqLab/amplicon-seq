@@ -32,9 +32,9 @@ def main(args):
         run_cmd("mosdepth -x -b %(bed)s %(sample)s --thresholds 1,10,20,30  %(sample)s.bam" % vars(args))
         run_cmd("bedtools coverage -a %(bed)s -b %(sample)s.bam -mean > %(sample)s_coverage_pf_mean.txt" % vars(args))
         
-        with open("bam_list.txt","w") as O:
-            for s in samples:
-                O.write("%s.bam\n" % (s))
+    with open("bam_list.txt","w") as O:
+        for s in samples:
+            O.write("%s.bam\n" % (s))
                 
         run_cmd("freebayes -f %(ref)s -t %(bed)s -L bam_list.txt --haplotype-length -1 --min-coverage 50 --min-base-quality %(min_base_qual)s --gvcf --gvcf-dont-use-chunk true | bcftools view -T %(bed)s | bcftools norm -f %(ref)s | bcftools sort -Oz -o combined.genotyped.vcf.gz" % vars(args))
         run_cmd(r"bcftools query -f '%CHROM\t%POS[\t%DP]\n' combined.genotyped.vcf.gz > tmp.txt")
