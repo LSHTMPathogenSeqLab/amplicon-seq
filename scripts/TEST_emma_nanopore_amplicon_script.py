@@ -8,13 +8,6 @@ from fastq2matrix import run_cmd
 from collections import defaultdict
 import gzip
 
-def run_cmd(cmd):
-    sys.stderr.write("Running command:\n%s\n\n" % cmd)
-    with open("/dev/null","w") as O:
-        res = sp.call(cmd,shell=True,stderr=O,stdout=O)
-    if res!=0:
-        sys.exit("Error running last command, please check!\n")
-
 
 def main(args):
 
