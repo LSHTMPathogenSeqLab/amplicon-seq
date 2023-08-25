@@ -17,7 +17,7 @@ def main(args):
         reader = csv.DictReader(open(args.index_file,encoding='utf-8-sig'))
         for row in reader:
             if row["sample"]=="": continue
-                samples.append(row["sample"])
+            samples.append(row["sample"])
 
     fm.bwa_index(args.ref)
     fm.create_seq_dict(args.ref)
