@@ -66,9 +66,7 @@ Nanopore amplicon sequencing analysis script
 optional arguments:
   -h, --help            show this help message and exit
   --index-file INDEX_FILE
-                        samples.csv with the "sample" column for sample IDs;
-                        created by "demux_nanopore_plates.py" if using 96-well
-                        plates (default: None)
+                        sample_file.csv with the "sample" column for sample IDs (default: None)
   --ref REF             Reference fasta (default: None)
   --gff GFF             GFF file (default: None)
   --bed BED             BED file with genes/amplicon locations (default: None)
