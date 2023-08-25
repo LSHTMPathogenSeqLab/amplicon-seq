@@ -39,11 +39,12 @@ def main(args):
         run_cmd("freebayes -f %(ref)s -t %(bed)s -L bam_list.txt --haplotype-length -1 --min-coverage 50 --min-base-quality %(min_base_qual)s --gvcf --gvcf-dont-use-chunk true | bcftools view -T %(bed)s | bcftools norm -f %(ref)s | bcftools sort -Oz -o combined.genotyped.vcf.gz" % vars(args))
         run_cmd(r"bcftools query -f '%CHROM\t%POS[\t%DP]\n' combined.genotyped.vcf.gz > tmp.txt")
         run_cmd("bcftools filter -i 'FMT/DP>10' -S . combined.genotyped.vcf.gz | bcftools view -i 'QUAL>30' | bcftools sort | bcftools norm -m - -Oz -o tmp.vcf.gz" % vars(args))
-        run_cmd("bcftools view -v snps tmp.vcf.gz > snps.vcf" % vars(args))
-        run_cmd("bgzip -c snps.vcf > snps.vcf.gz" % vars(args))
-        run_cmd("tabix -f snps.vcf.gz" % vars(args))
-        run_cmd("bcftools csq -p a -f %(ref)s -g %(gff)s -Oz -o snps.vcf.gz" % vars(args))
-        run_cmd("tabix snps.vcf.gz" % vars(args))
+        run_cmd("bcftools view -v snps tmp.vcf.gz | bcftools csq -p a -f %(ref)s -g %(gff)s -Oz -o snps.vcf.gz" % vars(args))
+        #run_cmd("bcftools view -v snps tmp.vcf.gz > snps.vcf" % vars(args))
+        #run_cmd("bgzip -c snps.vcf > snps.vcf.gz" % vars(args))
+        #run_cmd("tabix -f snps.vcf.gz" % vars(args))
+        #run_cmd("bcftools csq -p a -f %(ref)s -g %(gff)s -Oz -o snps.vcf.gz" % vars(args))
+        #run_cmd("tabix snps.vcf.gz" % vars(args))
         run_cmd(r"bcftools query snps.vcf.gz -f '[%SAMPLE\t%CHROM\t%POS\t%REF\t%ALT\t%QUAL\t%GT\t%TGT\t%DP\t%AD\t%TBCSQ\n]' > combined_genotyped_filtered_formatted.snps.trans.txt")    
 
         
