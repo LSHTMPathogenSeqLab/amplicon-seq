@@ -79,7 +79,7 @@ def main(args):
 
 # Set up the parser
 parser = argparse.ArgumentParser(description='Amplicon sequencing analysis script',formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-parser.add_argument('--index-file',type=str,help='samples.csv with the "sample" column for sample IDs; created by "demux_nanopore_plates.py" if using 96-well plates',required=True)
+parser.add_argument('--index-file',type=str,help='sample_file.csv with the "sample" column for sample IDs',required=True)
 parser.add_argument('--ref',type=str,help='Reference fasta',required=True)
 parser.add_argument('--gff',type=str,help='GFF file',required=True)
 parser.add_argument('--bed',type=str,help='BED file with genes/amplicon locations',required=True)
