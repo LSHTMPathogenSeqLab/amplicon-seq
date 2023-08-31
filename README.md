@@ -43,7 +43,9 @@ optional arguments:
                         Minimum base quality to use by freebayes (default: 30)
 ```
 
-## Nanopore Sequencing - Mapping, Variant Calling & Annotation (Run AFTER Demultiplexing by nanopore and primer barcodes)
+## Nanopore Sequencing - Mapping, Variant Calling & Annotation
+Note: Run AFTER Demultiplexing by nanopore AND primer-specific barcodes
+
 Place all demultiplexed fastq files into a directory and use these commands to generate a sample ID list in .csv format with 'sample' as the column header.
 ```
 ls *.fastq | sed 's/.fastq//' > samples.txt
