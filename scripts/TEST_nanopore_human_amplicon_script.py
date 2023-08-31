@@ -40,7 +40,7 @@ def main(args):
         run_cmd("bedtools coverage -a %(bed)s -b %(sample)s.bam -mean > %(sample)s_coverage_pf_mean.txt" % vars(args))
 
         
-        with open("bam_list.txt","w") as O:
+    with open("bam_list.txt","w") as O:
         for s in samples:
             O.write("%s.bam\n" % (s))
 
