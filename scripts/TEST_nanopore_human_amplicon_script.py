@@ -57,34 +57,33 @@ def main(args):
 
 
     
-    bedlines = []
-    amplicon_positions = []
-    for l in open(args.bed):
-        row = l.strip().split()
-        bedlines.append(row)
-        for p in range(int(row[1]),int(row[2])):
-            amplicon_positions.append((row[0],p))
+        bedlines = []
+        amplicon_positions = []
+        for l in open(args.bed):
+            row = l.strip().split()
+            bedlines.append(row)        
+            for p in range(int(row[1]),int(row[2])):
+                amplicon_positions.append((row[0],p))
 
-    def overlap_bedlines(a,bedlines):
-        overlaps = []
-        for b in bedlines:
-            if b[0]==a[0]:
-                overlap = max(0, min(int(a[2]), int(b[2])) - max(int(a[1]), int(b[1])))
-                if overlap>0:
-                    overlaps.append([b[0],max(int(a[1]),int(b[1])),min(int(a[2]),int(b[2]))])
-        return overlaps
+        def overlap_bedlines(a,bedlines):
+            overlaps = []
+            for b in bedlines:
+                if b[0]==a[0]:
+                    overlap = max(0, min(int(a[2]), int(b[2])) - max(int(a[1]), int(b[1])))
+                    if overlap>0:
+                        overlaps.append([b[0],max(int(a[1]),int(b[1])),min(int(a[2]),int(b[2]))])
+            return overlaps
 
-dp = defaultdict(dict)
-for s in samples:
-    for l in gzip.open(f"{s}.per-base.bed.gz"):
-        row = l.decode().strip().split()
-        overlaps = overlap_bedlines(row,bedlines)
-        if len(overlaps)>0:
-            for overlap in overlaps:
-                for pos in range(int(overlap[1]),int(overlap[2])):
-                    dp[s][(row[0],pos)] = int(row[3])
-
-
+        dp = defaultdict(dict)
+        for s in samples:
+            for l in gzip.open(f"{s}.per-base.bed.gz"):
+                row = l.decode().strip().split()
+                overlaps = overlap_bedlines(row,bedlines)
+                if len(overlaps)>0:
+                    for overlap in overlaps:
+                        for pos in range(int(overlap[1]),int(overlap[2])):
+                            dp[s][(row[0],pos)] = int(row[3])
+                            
 # Set up the parser
 parser = argparse.ArgumentParser(description='Amplicon sequencing analysis script',formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 #parser.add_argument('--fastq',type=str,help='Nanopore fastq file',required = True)
