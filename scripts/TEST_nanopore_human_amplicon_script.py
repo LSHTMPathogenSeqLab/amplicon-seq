@@ -44,57 +44,45 @@ def main(args):
         for s in samples:
             O.write("%s.bam\n" % (s))
 
-        run_cmd("freebayes -f %(ref)s -t %(bed)s -L bam_list.txt --haplotype-length -1 --min-coverage 50 --min-base-quality %(min_base_qual)s --gvcf --gvcf-dont-use-chunk true | bcftools view -T %(bed)s | bcftools norm -f %(ref)s | bcftools sort -Oz -o combined.genotyped.vcf.gz" % vars(args))
-        run_cmd(r"bcftools query -f '%CHROM\t%POS[\t%DP]\n' combined.genotyped.vcf.gz > tmp.txt")
-
-        run_cmd("bcftools filter -i 'FMT/DP>10' -S . combined.genotyped.vcf.gz | bcftools view -i 'QUAL>30' | bcftools sort | bcftools norm -m - -Oz -o tmp.vcf.gz" % vars(args))
-       
-        run_cmd("bcftools view -v snps tmp.vcf.gz > snps.vcf" % vars(args))
-        run_cmd("bgzip -c snps.vcf > snps.vcf.gz" % vars(args))
-        run_cmd("tabix -f snps.vcf.gz" % vars(args))      
-        
-        run_cmd("awk '{gsub(/NC_000001.11/, \"1\"); gsub(/NC_000004.12/, \"4\"); gsub(/NC_000009.12/, \"9\"); gsub(/NC_000011.10/, \"11\"); gsub(/NC_000023.11/, \"X\"); print;}' snps.vcf > snps_num.vcf" % vars(args))
-        
-        run_cmd("SnpSift annotate %(clinVar)s snps_num.vcf > snps_num_clinvar_GRCh38.vcf" % vars(args))
-        run_cmd(r"bcftools query snps_num_clinvar_GRCh38.vcf -f '[%SAMPLE\t%CHROM\t%POS\t%REF\t%ALT\t%QUAL\t%GT\t%TGT\t%DP\t%AD\t%RS\t%CLNDN\n]' > combined_genotyped_filtered_formatted.snps.txt")    
+    run_cmd("freebayes -f %(ref)s -t %(bed)s -L bam_list.txt --haplotype-length -1 --min-coverage 50 --min-base-quality %(min_base_qual)s --gvcf --gvcf-dont-use-chunk true | bcftools view -T %(bed)s | bcftools norm -f %(ref)s | bcftools sort -Oz -o combined.genotyped.vcf.gz" % vars(args))
+    run_cmd(r"bcftools query -f '%CHROM\t%POS[\t%DP]\n' combined.genotyped.vcf.gz > tmp.txt")
+    run_cmd("bcftools filter -i 'FMT/DP>10' -S . combined.genotyped.vcf.gz | bcftools view -i 'QUAL>30' | bcftools sort | bcftools norm -m - -Oz -o tmp.vcf.gz" % vars(args))   
+    run_cmd("bcftools view -v snps tmp.vcf.gz > snps.vcf" % vars(args))
+    run_cmd("bgzip -c snps.vcf > snps.vcf.gz" % vars(args))
+    run_cmd("tabix -f snps.vcf.gz" % vars(args))      
+    run_cmd("awk '{gsub(/NC_000001.11/, \"1\"); gsub(/NC_000004.12/, \"4\"); gsub(/NC_000009.12/, \"9\"); gsub(/NC_000011.10/, \"11\"); gsub(/NC_000023.11/, \"X\"); print;}' snps.vcf > snps_num.vcf" % vars(args))
+    run_cmd("SnpSift annotate %(clinVar)s snps_num.vcf > snps_num_clinvar_GRCh38.vcf" % vars(args))
+    run_cmd(r"bcftools query snps_num_clinvar_GRCh38.vcf -f '[%SAMPLE\t%CHROM\t%POS\t%REF\t%ALT\t%QUAL\t%GT\t%TGT\t%DP\t%AD\t%RS\t%CLNDN\n]' > combined_genotyped_filtered_formatted.snps.txt")    
       
-        run_cmd("bcftools view -v indels tmp.vcf.gz > indels.vcf" % vars(args))
-        run_cmd("bgzip -c indels.vcf > indels.vcf.gz" % vars(args))
-        run_cmd("tabix -f indels.vcf.gz" % vars(args))
-
-        run_cmd("awk '{gsub(/NC_000001.11/, \"1\"); gsub(/NC_000004.12/, \"4\"); gsub(/NC_000009.12/, \"9\"); gsub(/NC_000011.10/, \"11\"); gsub(/NC_000023.11/, \"X\"); print;}' indels.vcf > indels_num.vcf" % vars(args))
-        run_cmd(r"bcftools query indels_num_clinvar_GRCh38.vcf -f '[%SAMPLE\t%CHROM\t%POS\t%REF\t%ALT\t%QUAL\t%GT\t%TGT\t%DP\t%AD\n]' > combined_genotyped_filtered_formatted.indels.txt")    
-        
-        
 
 
     
-        bedlines = []
-        amplicon_positions = []
-        for l in open(args.bed):
-            row = l.strip().split()
-            bedlines.append(row)        
-            for p in range(int(row[1]),int(row[2])):
-                amplicon_positions.append((row[0],p))
+    bedlines = []
+    amplicon_positions = []
+    for l in open(args.bed):
+        row = l.strip().split()
+        bedlines.append(row)
+        for p in range(int(row[1]),int(row[2])):
+            amplicon_positions.append((row[0],p))
 
-        def overlap_bedlines(a,bedlines):
-            overlaps = []
-            for b in bedlines:
-                if b[0]==a[0]:
-                    overlap = max(0, min(int(a[2]), int(b[2])) - max(int(a[1]), int(b[1])))
-                    if overlap>0:
-                        overlaps.append([b[0],max(int(a[1]),int(b[1])),min(int(a[2]),int(b[2]))])
-            return overlaps
+    def overlap_bedlines(a,bedlines):
+        overlaps = []
+        for b in bedlines:
+            if b[0]==a[0]:
+                overlap = max(0, min(int(a[2]), int(b[2])) - max(int(a[1]), int(b[1])))
+                if overlap>0:
+                    overlaps.append([b[0],max(int(a[1]),int(b[1])),min(int(a[2]),int(b[2]))])
+        return overlaps
 
-        dp = defaultdict(dict)
-        for s in samples:
-            for l in gzip.open(f"{s}.per-base.bed.gz"):
-                row = l.decode().strip().split()
-                overlaps = overlap_bedlines(row,bedlines)
-                if len(overlaps)>0:
-                    for overlap in overlaps:
-                        for pos in range(int(overlap[1]),int(overlap[2])):
-                            dp[s][(row[0],pos)] = int(row[3])
+dp = defaultdict(dict)
+for s in samples:
+    for l in gzip.open(f"{s}.per-base.bed.gz"):
+        row = l.decode().strip().split()
+        overlaps = overlap_bedlines(row,bedlines)
+        if len(overlaps)>0:
+            for overlap in overlaps:
+                for pos in range(int(overlap[1]),int(overlap[2])):
+                    dp[s][(row[0],pos)] = int(row[3])
 
 
 # Set up the parser
