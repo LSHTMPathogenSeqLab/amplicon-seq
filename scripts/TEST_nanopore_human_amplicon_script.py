@@ -44,16 +44,28 @@ def main(args):
         for s in samples:
             O.write("%s.bam\n" % (s))
 
-    run_cmd("freebayes -f %(ref)s -t %(bed)s -L bam_list.txt --haplotype-length -1 --min-coverage 50 --min-base-quality %(min_base_qual)s --gvcf --gvcf-dont-use-chunk true | bcftools view -T %(bed)s | bcftools norm -f %(ref)s | bcftools sort -Oz -o combined.genotyped.vcf.gz" % vars(args))
-    run_cmd(r"bcftools query -f '%CHROM\t%POS[\t%DP]\n' combined.genotyped.vcf.gz > tmp.txt")
-    run_cmd("bcftools filter -i 'FMT/DP>10' -S . combined.genotyped.vcf.gz | bcftools view -i 'QUAL>30' | bcftools sort | bcftools norm -m - -Oz -o tmp.vcf.gz" % vars(args))   
-    run_cmd("bcftools view -v snps tmp.vcf.gz > snps.vcf" % vars(args))
-    run_cmd("bgzip -c snps.vcf > snps.vcf.gz" % vars(args))
-    run_cmd("tabix -f snps.vcf.gz" % vars(args))      
-    run_cmd("awk '{gsub(/NC_000001.11/, \"1\"); gsub(/NC_000004.12/, \"4\"); gsub(/NC_000009.12/, \"9\"); gsub(/NC_000011.10/, \"11\"); gsub(/NC_000023.11/, \"X\"); print;}' snps.vcf > snps_num.vcf" % vars(args))
-    run_cmd("SnpSift annotate %(clinVar)s snps_num.vcf > snps_num_clinvar_GRCh38.vcf" % vars(args))
-    run_cmd(r"bcftools query snps_num_clinvar_GRCh38.vcf -f '[%SAMPLE\t%CHROM\t%POS\t%REF\t%ALT\t%QUAL\t%GT\t%TGT\t%DP\t%AD\t%RS\t%CLNDN\n]' > combined_genotyped_filtered_formatted.snps.txt")    
+        run_cmd("freebayes -f %(ref)s -t %(bed)s -L bam_list.txt --haplotype-length -1 --min-coverage 50 --min-base-quality %(min_base_qual)s --gvcf --gvcf-dont-use-chunk true | bcftools view -T %(bed)s | bcftools norm -f %(ref)s | bcftools sort -Oz -o combined.genotyped.vcf.gz" % vars(args))
+        run_cmd(r"bcftools query -f '%CHROM\t%POS[\t%DP]\n' combined.genotyped.vcf.gz > tmp.txt")
+
+        run_cmd("bcftools filter -i 'FMT/DP>10' -S . combined.genotyped.vcf.gz | bcftools view -i 'QUAL>30' | bcftools sort | bcftools norm -m - -Oz -o tmp.vcf.gz" % vars(args))
+       
+        run_cmd("bcftools view -v snps tmp.vcf.gz > snps.vcf" % vars(args))
+        run_cmd("bgzip -c snps.vcf > snps.vcf.gz" % vars(args))
+        run_cmd("tabix -f snps.vcf.gz" % vars(args))      
+        
+        run_cmd("awk '{gsub(/NC_000001.11/, \"1\"); gsub(/NC_000004.12/, \"4\"); gsub(/NC_000009.12/, \"9\"); gsub(/NC_000011.10/, \"11\"); gsub(/NC_000023.11/, \"X\"); print;}' snps.vcf > snps_num.vcf" % vars(args))
+        
+        run_cmd("SnpSift annotate %(clinVar)s snps_num.vcf > snps_num_clinvar_GRCh38.vcf" % vars(args))
+        run_cmd(r"bcftools query snps_num_clinvar_GRCh38.vcf -f '[%SAMPLE\t%CHROM\t%POS\t%REF\t%ALT\t%QUAL\t%GT\t%TGT\t%DP\t%AD\t%RS\t%CLNDN\n]' > combined_genotyped_filtered_formatted.snps.txt")    
       
+        run_cmd("bcftools view -v indels tmp.vcf.gz > indels.vcf" % vars(args))
+        run_cmd("bgzip -c indels.vcf > indels.vcf.gz" % vars(args))
+        run_cmd("tabix -f indels.vcf.gz" % vars(args))
+
+        run_cmd("awk '{gsub(/NC_000001.11/, \"1\"); gsub(/NC_000004.12/, \"4\"); gsub(/NC_000009.12/, \"9\"); gsub(/NC_000011.10/, \"11\"); gsub(/NC_000023.11/, \"X\"); print;}' indels.vcf > indels_num.vcf" % vars(args))
+        run_cmd(r"bcftools query indels_num_clinvar_GRCh38.vcf -f '[%SAMPLE\t%CHROM\t%POS\t%REF\t%ALT\t%QUAL\t%GT\t%TGT\t%DP\t%AD\n]' > combined_genotyped_filtered_formatted.indels.txt")    
+        
+        
 
 
     
@@ -83,7 +95,8 @@ def main(args):
                     for overlap in overlaps:
                         for pos in range(int(overlap[1]),int(overlap[2])):
                             dp[s][(row[0],pos)] = int(row[3])
-                            
+
+
 # Set up the parser
 parser = argparse.ArgumentParser(description='Amplicon sequencing analysis script',formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 #parser.add_argument('--fastq',type=str,help='Nanopore fastq file',required = True)
