@@ -1,4 +1,0 @@
-ref = GRCh38_latest_genomic.fasta
-gff = Homo_sapiens.GRCh38.105.gff3
-bed = GRCh38_amplicon_targets_updated_sorted.bed
-clinVar = clinvar_GRCh38.vcf.gz
