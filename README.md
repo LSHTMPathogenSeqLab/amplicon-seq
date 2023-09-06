@@ -43,41 +43,6 @@ optional arguments:
                         Minimum base quality to use by freebayes (default: 30)
 ```
 
-## Nanopore Sequencing - Mapping, Variant Calling & Annotation
-Note: Run AFTER Demultiplexing by nanopore AND primer-specific barcodes
-
-Place all demultiplexed fastq files into a directory and use these commands to generate a sample ID list in .csv format with 'sample' as the column header.
-```
-ls *.fastq | sed 's/.fastq//' > samples.txt
-echo -e "sample" | cat - samples.txt > samples_header.txt
-sed 's/ \+/,/g' samples_header.txt > sample_file.csv
-```
-Compress all FASTQ files.
-```
-for f in *.fastq ; do bgzip -c "$f" > "${f%.*}.fastq.gz" ; done
-```
-
-### Usage
-```
-nanopore_amplicon_script.py [-h] --index-file INDEX_FILE --ref REF --gff GFF --bed BED
-                                             [--min-base-qual MIN_BASE_QUAL]
-                                             [--version]
-
-Nanopore amplicon sequencing analysis script
-
-optional arguments:
-  -h, --help            show this help message and exit
-  --index-file INDEX_FILE
-                        sample_file.csv with the "sample" column for sample IDs (default: None)
-  --ref REF             Reference fasta (default: None)
-  --gff GFF             GFF file (default: None)
-  --bed BED             BED file with genes/amplicon locations (default: None)
-  --min-base-qual MIN_BASE_QUAL
-                        Minimum base quality to use by freebayes (default: 30)
-  --version             show program's version number and exit
-
-```
-
 ## Human genotyping amplicon pipeline
 
 Download the latest clinvar vcf to annotate variations with rsIDs and clinical significance (now required).
@@ -136,6 +101,82 @@ optional arguments:
 
 
 ```
+
+## Nanopore Sequencing - Mapping, Variant Calling & Annotation
+Note: Run AFTER Demultiplexing by nanopore AND primer-specific barcodes
+
+This step required for all species.
+
+Place all demultiplexed fastq files into a directory and use these commands to generate a sample ID list in .csv format with 'sample' as the column header.
+```
+ls *.fastq | sed 's/.fastq//' > samples.txt
+echo -e "sample" | cat - samples.txt > samples_header.txt
+sed 's/ \+/,/g' samples_header.txt > sample_file.csv
+```
+This sample_file.csv will be used by both pipelines to perform mapping and variant calling for all samples within this file.
+
+Finally, compress all FASTQ files prior to running either pipeline.
+```
+for f in *.fastq ; do bgzip -c "$f" > "${f%.*}.fastq.gz" ; done
+```
+
+### Usage for any species EXCEPT Human (instructions for Human provided below)
+General nanopore amplicon sequencing for use on multiple species (haploid and dipolid), such as Plasmodium and mosquito vectors. 
+
+Variants are annotated using bcftools consequence calling package.
+
+```
+nanopore_amplicon_script.py [-h] --index-file INDEX_FILE --ref REF --gff GFF --bed BED
+                                             [--min-base-qual MIN_BASE_QUAL]
+                                             [--version]
+
+Nanopore amplicon sequencing analysis script
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --index-file INDEX_FILE
+                        sample_file.csv with the "sample" column for sample IDs (default: None)
+  --ref REF             Reference fasta (default: None)
+  --gff GFF             GFF file (default: None)
+  --bed BED             BED file with genes/amplicon locations (default: None)
+  --min-base-qual MIN_BASE_QUAL
+                        Minimum base quality to use by freebayes (default: 30)
+  --version             show program's version number and exit
+
+```
+## Usage for Human nanopore sequencing data
+Human nanopore amplicon sequencing pipeline for use on human targets.
+
+Variants annotated using the ClinVar database providing rsID and clinical significance annotations. 
+
+Requires ClinVar VCF to run.
+```
+curl -s ftp://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh38/clinvar.vcf.gz > clinvar_GRCh38.vcf.gz
+tabix -f clinvar_GRCh38.vcf.gz
+
+```
+
+```
+human_nanopore_amplicon_script.py [-h] --index-file INDEX_FILE --ref REF --gff GFF --bed BED --clinVar CLINVAR
+                                             [--min-base-qual MIN_BASE_QUAL]
+                                             [--version]
+
+Nanopore amplicon sequencing analysis script
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --index-file INDEX_FILE
+                        sample_file.csv with the "sample" column for sample IDs (default: None)
+  --ref REF             Reference fasta (default: None)
+  --gff GFF             GFF file (default: None)
+  --bed BED             BED file with genes/amplicon locations (default: None)
+  --clinVar CLINVAR     ClinVar SNP annotation file (default: None)
+  --min-base-qual MIN_BASE_QUAL
+                        Minimum base quality to use by freebayes (default: 30)
+  --version             show program's version number and exit
+
+```
+
 
 ## Plot read depth for variants of interest
 Create box plots using the plot_read_depth_human.r or plot_read_depth_Pfalciparum.r in the plots folder to show the read depth at positions of interest using the depth_info.txt output file from the amplicon sequencing pipeline.
