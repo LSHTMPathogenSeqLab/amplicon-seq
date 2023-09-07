@@ -18,7 +18,7 @@ python setup.py install
 ```
 
 
-## Usage
+## Usage for Illumina sequencing
 ```
 usage: amplicon_script.py [-h] --index-file INDEX_FILE --read1 READ1 --read2
                           READ2 --ref REF --gff GFF --bed BED [--trim]
@@ -43,7 +43,7 @@ optional arguments:
                         Minimum base quality to use by freebayes (default: 30)
 ```
 
-## Human genotyping amplicon pipeline
+## Human genotyping amplicons (Illumina)
 
 Download the latest clinvar vcf to annotate variations with rsIDs and clinical significance (now required).
 
