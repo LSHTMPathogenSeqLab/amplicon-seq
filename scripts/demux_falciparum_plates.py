@@ -4,15 +4,48 @@ import argparse
 import subprocess as sp
 import csv
 from uuid import uuid4
+from joblib import Parallel, delayed
+from tqdm import tqdm
+import re
+import os
+
 
 parser = argparse.ArgumentParser(description='Demultiplex plates')
 parser.add_argument('-p', '--plate-layout', help='Input file', required=True)
 parser.add_argument('-b', '--barcodes', help='Output file', required=True)
 parser.add_argument('-f', '--fastq-dir', help='Fastq firectory', required=True)
 parser.add_argument('-t', '--threads', help='Number of threads', default=4, type=int)
+parser.add_argument('-j', '--jobs', help='Number of Jobs', default=4, type=int)
 parser.add_argument('-d', '--malaria-profiler-db', help='Malaria profiler db', default="amplicon")
 
 args = parser.parse_args()
+
+def which(program):
+    def is_exe(fpath):
+        return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
+
+    fpath, fname = os.path.split(program)
+    if fpath:
+        if is_exe(program):
+            return True
+    else:
+        for path in os.environ["PATH"].split(os.pathsep):
+            exe_file = os.path.join(path, program)
+            if is_exe(exe_file):
+                return True
+    return False
+
+def run_cmd(cmd: str, desc=None, log: str=None) -> sp.CompletedProcess:
+    programs = set([x.strip().split()[0] for x in re.split("[|&;]",cmd) if x!=""])
+    missing = [p for p in programs if which(p)==False]
+    if len(missing)>0:
+        raise ValueError("Cant find programs: %s\n" % (", ".join(missing)))
+    cmd = "/bin/bash -c set -o pipefail; " + cmd
+    output = open(log,"w") if log else sp.PIPE
+    result = sp.run(cmd,shell=True,stderr=output,stdout=output)
+    if result.returncode != 0:
+        raise ValueError("Command Failed:\n%s\nstderr:\n%s" % (cmd,result.stderr.decode()))
+    return result
 
 # Read in plate layout
 plate_layout = {}
@@ -46,5 +79,7 @@ run_file = f"{uuid4()}.sh"
 with open(run_file,'w') as O:
     O.write("\n".join(cmds))
 sp.run("mkdir malaria-profiler-results",shell=True)
-sp.run(f"cat {run_file} | parallel -j {args.threads} --bar",shell=True)
+parallel = Parallel(n_jobs=args.jobs, return_as='generator')
+[r for r in tqdm(parallel(delayed(run_cmd)(cmd) for cmd in cmds),total=len(cmds),desc="Running jobs")]
+# sp.run(f"cat {run_file} | parallel -j {args.threads} --bar",shell=True)
 sp.run(f"malaria-profiler collate --dir malaria-profiler-results/",shell=True)
