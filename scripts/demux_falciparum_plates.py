@@ -68,18 +68,15 @@ for bc in plate_layout:
         for key,val in plate_layout[bc].items():
             new_id = f"{key}_{val}"
             rows.append({'id':new_id, 'forward':barcodes[key][0], 'reverse':barcodes[key][1]})
-            cmds.append(f"malaria-profiler profile --platform nanopore --txt -1 {new_id}.fastq -p {new_id} --dir malaria-profiler-results --resistance_db {args.malaria_profiler_db}")
+            cmds.append(f"malaria-profiler profile --no_species --platform nanopore --txt -1 {new_id}.fastq -p {new_id} --dir malaria-profiler-results --resistance_db {args.malaria_profiler_db}")
         writer = csv.DictWriter(temp,fieldnames=['id','forward','reverse'])
         writer.writeheader()
         writer.writerows(rows)
     sp.run(f"demux_nanopore_amplicon.py --fastq {args.fastq_dir}/{bc}.fastq.gz --barcodes {tmp_barcode_file} --max-mismatch 0 --edge-size 12 --log-prefix {bc}",shell=True)
     sp.run(f"rm {tmp_barcode_file}",shell=True)
 
-run_file = f"{uuid4()}.sh"
-with open(run_file,'w') as O:
-    O.write("\n".join(cmds))
+
 sp.run("mkdir malaria-profiler-results",shell=True)
 parallel = Parallel(n_jobs=args.jobs, return_as='generator')
 [r for r in tqdm(parallel(delayed(run_cmd)(cmd) for cmd in cmds),total=len(cmds),desc="Running jobs")]
-# sp.run(f"cat {run_file} | parallel -j {args.threads} --bar",shell=True)
 sp.run(f"malaria-profiler collate --dir malaria-profiler-results/",shell=True)
