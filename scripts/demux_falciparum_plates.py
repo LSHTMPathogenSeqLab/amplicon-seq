@@ -68,13 +68,17 @@ for bc in plate_layout:
         for key,val in plate_layout[bc].items():
             new_id = f"{key}_{val}"
             rows.append({'id':new_id, 'forward':barcodes[key][0], 'reverse':barcodes[key][1]})
-            cmds.append(f"malaria-profiler profile --no_species --platform nanopore --txt -1 {new_id}.fastq -p {new_id} --dir malaria-profiler-results --resistance_db {args.malaria_profiler_db}")
         writer = csv.DictWriter(temp,fieldnames=['id','forward','reverse'])
         writer.writeheader()
         writer.writerows(rows)
     sp.run(f"demux_nanopore_amplicon.py --fastq {args.fastq_dir}/{bc}.fastq.gz --barcodes {tmp_barcode_file} --max-mismatch 0 --edge-size 12 --log-prefix {bc}",shell=True)
     sp.run(f"rm {tmp_barcode_file}",shell=True)
 
+for bc in plate_layout:
+    for key,val in plate_layout[bc].items():
+        new_id = f"{key}_{val}"
+        if os.path.isfile(f"{new_id}.fastq"):
+            cmds.append(f"malaria-profiler profile --no_species --platform nanopore --txt -1 {new_id}.fastq -p {new_id} --dir malaria-profiler-results --resistance_db {args.malaria_profiler_db}")
 
 sp.run("mkdir malaria-profiler-results",shell=True)
 parallel = Parallel(n_jobs=args.jobs, return_as='generator')
