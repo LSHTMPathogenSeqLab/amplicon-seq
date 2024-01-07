@@ -138,7 +138,7 @@ parser.add_argument('--min-sample-af',default=0.05,type=float,help='Quality valu
 parser.add_argument('--per-sample-only',action="store_true",help='Perform triming')
 parser.add_argument('--search-flipped-index',action='store_true',help='NGS Platform')
 parser.add_argument('--version', action='version', version='%(prog)s 1.0')
-pasrer.add_argument('--samclip', action="store_true", help = 'Use samclip or not')
+parser.add_argument('--samclip', action="store_true", help = 'Use samclip or not')
 parser.set_defaults(func=main)
 
 args = parser.parse_args()
