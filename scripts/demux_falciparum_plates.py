@@ -10,7 +10,7 @@ import re
 import os
 
 
-parser = argparse.ArgumentParser(description='Demultiplex plates')
+parser = argparse.ArgumentParser(description='Demultiplex plates',formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser.add_argument('-p', '--plate-layout', help='Input file', required=True)
 parser.add_argument('-b', '--barcodes', help='Output file', required=True)
 parser.add_argument('-f', '--fastq-dir', help='Fastq firectory', required=True)
