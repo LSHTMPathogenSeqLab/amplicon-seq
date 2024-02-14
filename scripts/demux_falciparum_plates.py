@@ -14,9 +14,13 @@ parser = argparse.ArgumentParser(description='Demultiplex plates')
 parser.add_argument('-p', '--plate-layout', help='Input file', required=True)
 parser.add_argument('-b', '--barcodes', help='Output file', required=True)
 parser.add_argument('-f', '--fastq-dir', help='Fastq firectory', required=True)
-parser.add_argument('-t', '--threads', help='Number of threads', default=4, type=int)
+parser.add_argument('-t', '--threads', help='Number of threads', default=1, type=int)
 parser.add_argument('-j', '--jobs', help='Number of Jobs', default=4, type=int)
 parser.add_argument('-d', '--malaria-profiler-db', help='Malaria profiler db', default="amplicon")
+parser.add_argument('--depth',default="0,10",type=str,help='Minimum depth hard and soft cutoff specified as comma separated values')
+parser.add_argument('--af',default="0.1,0.4",type=str,help='Minimum allele frequency hard and soft cutoff specified as comma separated values')
+parser.add_argument('--strand',default="0,3",type=str,help='Minimum read number per strand hard and soft cutoff specified as comma separated values')
+
 
 args = parser.parse_args()
 
@@ -78,7 +82,7 @@ for bc in plate_layout:
     for key,val in plate_layout[bc].items():
         new_id = f"{key}_{val}"
         if os.path.isfile(f"{new_id}.fastq"):
-            cmds.append(f"malaria-profiler profile --no_species --platform nanopore --txt -1 {new_id}.fastq -p {new_id} --dir malaria-profiler-results --resistance_db {args.malaria_profiler_db}")
+            cmds.append(f"malaria-profiler profile --no_species --platform nanopore --txt -1 {new_id}.fastq -p {new_id} --dir malaria-profiler-results --resistance_db {args.malaria_profiler_db} --depth {args.depth} --af {args.af} --strand {args.strand} --threads {args.threads}")
 
 sp.run("mkdir malaria-profiler-results",shell=True)
 parallel = Parallel(n_jobs=args.jobs, return_as='generator')
