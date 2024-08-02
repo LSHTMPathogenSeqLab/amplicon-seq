@@ -87,4 +87,4 @@ for bc in plate_layout:
 sp.run("mkdir malaria-profiler-results",shell=True)
 parallel = Parallel(n_jobs=args.jobs, return_as='generator')
 [r for r in tqdm(parallel(delayed(run_cmd)(cmd) for cmd in cmds),total=len(cmds),desc="Running jobs")]
-sp.run(f"malaria-profiler collate --dir malaria-profiler-results/",shell=True)
+# sp.run(f"malaria-profiler collate --dir malaria-profiler-results/",shell=True)
