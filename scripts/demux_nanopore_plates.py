@@ -40,7 +40,7 @@ for bc in plate_layout:
         writer = csv.DictWriter(temp,fieldnames=['id','forward','reverse'])
         writer.writeheader()
         writer.writerows(rows)
-    sp.run(f"demux_nanopore_amplicon.py --max-mismatch {args.max_mismatch} --fastq {args.fastq_dir}/{bc}.fastq.gz --barcodes {tmp_barcode_file} --max-mismatch 0 --edge-size 12 --log-prefix {bc}",shell=True)
+    sp.run(f"demux_nanopore_amplicon.py --max-mismatch {args.max_mismatch} --fastq {args.fastq_dir}/{bc}.fastq.gz --barcodes {tmp_barcode_file} --edge-size 12 --log-prefix {bc}",shell=True)
     sp.run(f"rm {tmp_barcode_file}",shell=True)
 
 
