@@ -61,7 +61,8 @@ def main(args):
             O.write(f">{barcodes2id[p]}_reverse\n{p[1]}\n")
 
     sys.stderr.write("Searching for barcodes in reads\n")
-    sp.call(f"seqkit locate --max-mismatch {args.max_mismatch} -f {barcode_fasta} {args.fastq} > {seqkit_output}",shell=True)
+    cmd = f"seqkit locate --max-mismatch {args.max_mismatch} -f {barcode_fasta} {args.fastq} > {seqkit_output}"
+    sp.call(cmd,shell=True)
 
     hits = defaultdict(list)
     for l in open(seqkit_output):

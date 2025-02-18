@@ -11,6 +11,7 @@ parser.add_argument('-b', '--barcodes', help='Output file', required=True)
 parser.add_argument('-f', '--fastq-dir', help='Fastq firectory', required=True)
 parser.add_argument('-t', '--threads', help='Number of threads', default=4, type=int)
 parser.add_argument('-o', '--output', default="samples.csv",help='Output file', required=True)
+parser.add_argument('-m','--max-mismatch',type=int,default=0,help='Maximum mismatches in barcode')
 
 args = parser.parse_args()
 
@@ -39,7 +40,7 @@ for bc in plate_layout:
         writer = csv.DictWriter(temp,fieldnames=['id','forward','reverse'])
         writer.writeheader()
         writer.writerows(rows)
-    sp.run(f"demux_nanopore_amplicon.py --fastq {args.fastq_dir}/{bc}.fastq.gz --barcodes {tmp_barcode_file} --max-mismatch 0 --edge-size 12 --log-prefix {bc}",shell=True)
+    sp.run(f"demux_nanopore_amplicon.py --max-mismatch {args.max_mismatch} --fastq {args.fastq_dir}/{bc}.fastq.gz --barcodes {tmp_barcode_file} --max-mismatch 0 --edge-size 12 --log-prefix {bc}",shell=True)
     sp.run(f"rm {tmp_barcode_file}",shell=True)
 
 
